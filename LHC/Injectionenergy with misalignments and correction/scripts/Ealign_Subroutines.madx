@@ -1,0 +1,145 @@
+! =====================================================================
+! error routines using measured alignment deviations from magnetic axis
+! =====================================================================
+
+! Modified code by P. Hagen based upon work by T. Risselada
+! measured alignment error routines
+! Updated 07.05.2015 as it was realised WISE angles = MADX angles for beam 1,2,3 (clockwise)
+! Updated 15.05.2015 as it was realised the aperture parameter is seen from CS connection side
+! Updated 12.10.2016 to support mylhcbeam = 4 for combined format
+
+Align_one_element(i_row) : macro = {
+
+     ! general parameters
+     beamnr = table(egeo, beam,        i_row);
+     apernr = table(egeo, ap,          i_row);
+     rot    = table(egeo, ma_rotation, i_row);
+     d_s    = table(egeo, m_dma,       i_row);
+     sep    = table(egeo, mech_sep,    i_row)*0.001;
+
+     clockwise=1;
+     if (mylhcbeam == 4) {clockwise=0;}
+
+     if (rot == 0) {rotfac=+1;}
+     else          {rotfac=-1;};
+
+     ! distance middle to magnet as seen in CS meas frame
+     d_s = d_s * rotfac; 
+
+     ! individual alignment positions [m]
+     m_dx   = table(egeo, m_dx,        i_row)*0.001;
+     m_dy   = table(egeo, m_dy,        i_row)*0.001;
+     m_ds   = table(egeo, m_ds,        i_row)*0.001;
+
+     ! individual alignment angles [rad]
+     m_the  = table(egeo, m_theta,     i_row)*0.001;
+     m_phi  = table(egeo, m_phi,       i_row)*0.001;
+     m_psi  = table(egeo, m_psi,       i_row)*0.001;
+
+     ! assembly alignment positions [m]
+     ma_dx  = table(egeo, ma_dx,       i_row)*0.001;
+     ma_dy  = table(egeo, ma_dy,       i_row)*0.001;
+     ma_ds  = table(egeo, ma_ds,       i_row)*0.001;
+
+     ! assembly alignment angles [rad]
+     ma_the = table(egeo, ma_theta,    i_row)*0.001;
+     ma_phi = table(egeo, ma_phi,      i_row)*0.001;
+     ma_psi = table(egeo, ma_psi,      i_row)*0.001;
+
+     ! sum individual and assembly positions
+     m_dx = ma_dx + m_dx*rotfac;
+     m_dy = ma_dy + m_dy;
+     m_ds = ma_ds + m_ds*rotfac;
+
+     ! add contributions of assembly angles
+     m_dx = m_dx - ma_the*d_s;
+     m_dy = m_dy + ma_phi*d_s;
+     if (beamnr <> 0 ) {
+         m_dy = m_dy + ma_psi*sep*rotfac*(1.5-apernr);
+     }
+
+     ! sum individual and assembly angles
+     m_the = ma_the + m_the;
+     m_phi = ma_phi + m_phi*rotfac;
+     m_psi = ma_psi + m_psi*rotfac;
+
+     select, flag=error, clear;
+     select, flag=error, class=tabstring(egeo, name, i_row);
+
+     ! convert to MAD convention as function of beam
+
+     if (clockwise == 1) {
+         ealign, dx=-m_dx, dy=+m_dy, ds=+m_ds, dtheta=m_the, dphi=m_phi, dpsi=m_psi;
+     }
+     if (clockwise == 0) {
+         ealign, dx=+m_dx, dy=+m_dy, ds=-m_ds, dtheta=m_the, dphi=-m_phi, dpsi=-m_psi;
+     }
+};
+
+Align_C_one_element(i_row) : macro = {
+
+     ! general parameters
+     beamnr = table(egeoc, beam,        i_row);
+     ismonitor = table(egeoc, monitor,        i_row);
+
+     ! read combined alignment positions [m]
+     mc_dx   = table(egeoc, mc_dx,        i_row);
+     mc_dy   = table(egeoc, mc_dy,        i_row);
+     mc_ds   = table(egeoc, mc_ds,        i_row);
+
+     ! read combined alignment angles [rad]
+     mc_the  = table(egeoc, mc_theta,     i_row);
+     mc_phi  = table(egeoc, mc_phi,       i_row);
+     mc_psi  = table(egeoc, mc_psi,       i_row);
+
+     clockwise=1;
+     if (mylhcbeam == 4) {clockwise=0;}
+
+     select, flag=error, clear;
+     select, flag=error, class=tabstring(egeoc, name, i_row);
+
+     doea=0;
+
+     if (mylhcbeam == 4) {
+        if (beamnr <> 1) {
+           doea=1;
+        }
+     } else {
+        if (mylhcbeam == 1 && beamnr <> 2) {
+           doea=1;
+        }
+        if (mylhcbeam > 1 && beamnr <> 1) {
+           doea=1;
+        }
+     }
+
+     if (doea == 1 && ismonitor == 1) {
+        if (clockwise == 1) {
+           ealign, arex=mc_dx, arey=mc_dy;
+        } else {
+           ealign, arex=-mc_dx, arey=mc_dy;
+        }
+        doea=0;
+     }
+
+     if (doea == 1) {
+        if (clockwise == 1) {
+           ealign, dx=mc_dx, dy=mc_dy, ds=mc_ds, dtheta=mc_the, dphi=mc_phi, dpsi=mc_psi;
+        } else {
+           ealign, dx=-mc_dx, dy=mc_dy, ds=-mc_ds, dtheta=mc_the, dphi=-mc_phi, dpsi=-mc_psi;
+        }
+     }
+};
+
+Ealign_All : macro = {
+     n_magnets = table(egeo, assembly_id, 1);
+     i=1; while(i<n_magnets+1){i=i+1; exec, Align_one_element($i); };
+};
+
+Ealign_C_All : macro = {
+     n_magnets = table(egeoc, assembly_id, 1);
+     i=1; while(i<n_magnets+1){i=i+1; exec, Align_C_one_element($i); };
+};
+
+
+return;

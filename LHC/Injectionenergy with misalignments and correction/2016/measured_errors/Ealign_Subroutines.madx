@@ -1,0 +1,73 @@
+! measured alignment error routines
+
+! saved on 08/03/07 16:11:47 by T.Risselada
+
+ Align_one_element(i_row) : macro = {
+
+     ! general parameters
+     beamnr = table(egeo, beam,        i_row);
+     apernr = table(egeo, ap,          i_row);
+     rot    = table(egeo, ma_rotation, i_row);
+     d_s    = table(egeo, m_dma,       i_row);
+     sep    = table(egeo, ma_bs,       i_row)*0.001;
+
+     if (rot == 0) {rotfac=+1;}
+     else          {rotfac=-1;} ;
+
+     ! individual alignment positions [m]
+     m_dx   = table(egeo, m_dx,        i_row)*0.001;
+     m_dy   = table(egeo, m_dy,        i_row)*0.001;
+     m_ds   = table(egeo, m_ds,        i_row)*0.001;
+
+     ! individual alignment tilt angles [rad]
+     m_the  = table(egeo, m_theta,     i_row)*0.001;
+     m_phi  = table(egeo, m_phi,       i_row)*0.001;
+     m_psi  = table(egeo, m_psi,       i_row)*0.001;
+
+     ! assembly alignment positions [m]
+     ma_dx  = table(egeo, ma_dx,       i_row)*0.001;
+     ma_dy  = table(egeo, ma_dy,       i_row)*0.001;
+     ma_ds  = table(egeo, ma_ds,       i_row)*0.001;
+
+     ! assembly alignment tilt angles [rad]
+     ma_the = table(egeo, ma_theta,    i_row)*0.001;
+     ma_phi = table(egeo, ma_phi,      i_row)*0.001;
+     ma_psi = table(egeo, ma_psi,      i_row)*0.001;
+
+     ! sum individual and assembly positions
+     m_dx = ma_dx + m_dx*rotfac;
+     m_dy = ma_dy + m_dy;
+     m_ds = ma_ds + m_ds*rotfac;
+
+     ! add contributions of assembly tilt angles
+     m_dx = m_dx - ma_the*d_s;
+     m_dy = m_dy + ma_phi*d_s;
+     m_dy = m_dy + ma_psi*sep*(apernr-1.5);
+
+     ! sum individual and assembly tilt angles
+     m_the = ma_the + m_the;
+     m_phi = ma_phi + m_phi*rotfac;
+     m_psi = ma_psi + m_psi*rotfac;
+
+     select, flag=error, clear;
+     select, flag=error, class=tabstring(egeo, name, i_row);
+
+     ! convert to MAD convention for each beam (beam 2 assumed counter-clockwise)
+
+     if (mylhcbeam == 1 && beamnr < 2) ) {
+         ealign, dx=-m_dx, dy=+m_dy, ds=+m_ds, dtheta=-m_the, dphi=-m_phi, dpsi=-m_psi;
+     }
+     if (mylhcbeam == 4 && beamnr <> 1 ) {
+         ealign, dx=+m_dx, dy=+m_dy, ds=-m_ds, dtheta=-m_the, dphi=+m_phi, dpsi=+m_psi;
+     }
+ };
+
+
+ Ealign_All : macro = {
+     if (mylhcbeam == 2 || mylhcbeam == 3) {stop;} // not implemented
+     n_magnets = table(egeo, cryoid, 1);
+     i=1; while(i<n_magnets+1){i=i+1; exec, Align_one_element($i); };
+ };
+
+
+return;

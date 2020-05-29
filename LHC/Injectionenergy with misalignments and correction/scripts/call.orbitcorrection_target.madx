@@ -1,0 +1,24 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!   Disable monitors and correctors
+!!!   All correctors disabled first, then virtual correctors are enabled
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!call,file="slhc/errors/SelectLHCMonCor_phaseI.madx";
+usekick, status=off, class=kicker;
+usekick, status=off, class=hkicker;
+usekick, status=off, class=vkicker;
+usekick, status=on, class=virtualcorrector;
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+usemonitor, status=on, class=monitor;
+
+twiss,chrom,table;
+correct, flag=ring, mode=svd, plane=y, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+correct, flag=ring, mode=svd, plane=x, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+twiss,chrom,table;
+correct, flag=ring, mode=svd, plane=y, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+correct, flag=ring, mode=svd, plane=x, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+twiss,chrom,table;
+correct, flag=ring, mode=svd, plane=y, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+correct, flag=ring, mode=svd, plane=x, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+twiss,chrom,table;
+correct, flag=ring, mode=svd, plane=y, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;
+correct, flag=ring, mode=svd, plane=x, error=1.0e-90, corzero=0,  extern=true, cond=0, resout=0, target=my_target;

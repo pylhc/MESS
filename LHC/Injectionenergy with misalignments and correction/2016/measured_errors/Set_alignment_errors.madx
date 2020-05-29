@@ -1,0 +1,20 @@
+! apply alignment errors defined in a TFS table
+
+! saved on 10/12/2009 11:07:14 by T.Risselada
+
+ Align_one_element(j_elem) : macro = {
+     select, flag=error, clear;
+     select, flag=error, pattern=^tabstring(egeoc, name, j_elem);
+     ealign, dx     = table(egeoc, mc_dx,    j_elem),
+             dy     = table(egeoc, mc_dy,    j_elem),
+             ds     = table(egeoc, mc_ds,    j_elem),
+             dphi   = table(egeoc, mc_phi,   j_elem),
+             dtheta = table(egeoc, mc_theta, j_elem),
+             dpsi   = table(egeoc, mc_psi,   j_elem);
+  }
+
+
+ n_elem = table(egeoc, tablelength); i_elem = 0;
+ while (i_elem < n_elem) { i_elem = i_elem + 1; exec,  Align_one_element($i_elem); }
+
+return;

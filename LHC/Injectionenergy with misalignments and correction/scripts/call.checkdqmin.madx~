@@ -1,0 +1,31 @@
+qfmid=(ptcqyinit+ptcqxinit)/2.0;
+qxmid=qx00+qfmid;
+qymid=qy00+qfmid;
+value, qfmid,qxmid,qymid;
+if(mylhcbeam==1){
+   kqtfinit=kqtf.b1;
+   kqtdinit=kqtd.b1;
+   match;
+	global, q1=64.295, q2=59.295;
+     	vary,   name=kqtf.b1, step=1.0E-7 ;
+     	vary,   name=kqtd.b1, step=1.0E-7 ;
+     	lmdif,  calls=100, tolerance=1.0E-21;
+   endmatch;
+   kqtf.b1=kqtfinit;
+   kqtd.b1=kqtdinit;
+}
+if(mylhcbeam>1){
+   kqtfinit=kqtf.b2;
+   kqtdinit=kqtd.b2;
+   match;
+	global, q1=64.295, q2=59.295;
+     	vary,   name=kqtf.b1, step=1.0E-7 ;
+     	vary,   name=kqtd.b1, step=1.0E-7 ;
+     	lmdif,  calls=100, tolerance=1.0E-21;
+   endmatch;
+   kqtf.b2=kqtfinit;
+   kqtd.b2=kqtdinit;
+}
+dqminacorr = table(summ,q1)-table(summ,q2)-(qx00-qy00);
+twiss;
+value, dqminacorr;

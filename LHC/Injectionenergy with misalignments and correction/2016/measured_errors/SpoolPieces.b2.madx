@@ -1,0 +1,58 @@
+
+! saved on 06/07/06 16:15:25 by T.Risselada
+
+!------------------------------------------------------------------------
+!      Correct the average B3 using the 'MAGNETIC MEASUREMENTS'
+!               with the b3 spool-piece families
+!------------------------------------------------------------------------
+
+ N_MCS = 154; ! number of sextupole spoole piece elements
+ if (mylhcbeam == 4) { N_MCS = -154;}
+
+ KCS.A12B2 := -b3sum_mb.12 /N_MCS / l.MCS;
+ KCS.A23B2 := -b3sum_mb.23 /N_MCS / l.MCS;
+ KCS.A34B2 := -b3sum_mb.34 /N_MCS / l.MCS;
+ KCS.A45B2 := -b3sum_mb.45 /N_MCS / l.MCS;
+ KCS.A56B2 := -b3sum_mb.56 /N_MCS / l.MCS;
+ KCS.A67B2 := -b3sum_mb.67 /N_MCS / l.MCS;
+ KCS.A78B2 := -b3sum_mb.78 /N_MCS / l.MCS;
+ KCS.A81B2 := -b3sum_mb.81 /N_MCS / l.MCS;
+
+
+
+!------------------------------------------------------------------------
+!      Correct the average B4 using the 'MAGNETIC MEASUREMENTS'
+!               with the b4 spool-piece families
+!------------------------------------------------------------------------
+
+ N_MCO = 77; ! number of octupole spoole piece elements
+
+ KCO.A12B2 := -b4sum_mb.12 /N_MCO / l.MCO;
+ KCO.A23B2 := -b4sum_mb.23 /N_MCO / l.MCO;
+ KCO.A34B2 := -b4sum_mb.34 /N_MCO / l.MCO;
+ KCO.A45B2 := -b4sum_mb.45 /N_MCO / l.MCO;
+ KCO.A56B2 := -b4sum_mb.56 /N_MCO / l.MCO;
+ KCO.A67B2 := -b4sum_mb.67 /N_MCO / l.MCO;
+ KCO.A78B2 := -b4sum_mb.78 /N_MCO / l.MCO;
+ KCO.A81B2 := -b4sum_mb.81 /N_MCO / l.MCO;
+
+
+
+!------------------------------------------------------------------------
+!      Correct the average B5 using the 'MAGNETIC MEASUREMENTS'
+!               with the b5 spool-piece families
+!------------------------------------------------------------------------
+
+ N_MCD = 77; ! number of decapole spoole piece elements
+ if (mylhcbeam == 4) { N_MCD = -77;}
+
+ KCD.A12B2 := -b5sum_mb.12 /N_MCD / l.MCD;
+ KCD.A23B2 := -b5sum_mb.23 /N_MCD / l.MCD;
+ KCD.A34B2 := -b5sum_mb.34 /N_MCD / l.MCD;
+ KCD.A45B2 := -b5sum_mb.45 /N_MCD / l.MCD;
+ KCD.A56B2 := -b5sum_mb.56 /N_MCD / l.MCD;
+ KCD.A67B2 := -b5sum_mb.67 /N_MCD / l.MCD;
+ KCD.A78B2 := -b5sum_mb.78 /N_MCD / l.MCD;
+ KCD.A81B2 := -b5sum_mb.81 /N_MCD / l.MCD;
+
+return;
