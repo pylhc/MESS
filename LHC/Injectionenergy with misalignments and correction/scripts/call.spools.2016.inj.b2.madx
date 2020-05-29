@@ -1,0 +1,38 @@
+
+KCO.A12B2nom = 0.67729929792 -2.01 ;
+KCO.A23B2nom = 3.23942726080 -2.01 ;
+KCO.A34B2nom = 3.21708232898 -2.01 ;
+KCO.A45B2nom = 3.07584567742 -2.01 ;
+KCO.A56B2nom = 0.78055780724 -2.01 ;
+KCO.A67B2nom = 0.32744947123 -2.01 ;
+KCO.A78B2nom = 1.58616311288 -2.01 ;
+KCO.A81B2nom = 3.41182857028 -2.01 ;
+
+  KCO.A12B2hyst = ((+1)*0.72*KCO.a12B2nom) ;
+  KCO.A23B2hyst = ((-1)*0.76*KCO.a23B2nom) ;
+  KCO.a34B2hyst = ((-1)*0.76*KCO.a34B2nom) ;
+  KCO.a45B2hyst = ((-1)*0.87*KCO.a45B2nom) ;
+  KCO.a56B2hyst = ((+1)*0.75*KCO.a56B2nom) ;
+  KCO.a67B2hyst = ((+1)*0.54*KCO.a67B2nom) ;
+  KCO.a78B2hyst = ((+1)*0.75*KCO.a78B2nom) ;
+  KCO.a81B2hyst = ((-1)*0.75*KCO.a81B2nom) ;
+
+KCO.A12B2 = KCO.A12B2nom + KCO.A12B2hyst ;
+KCO.A23B2 = KCO.A23B2nom + KCO.A23B2hyst ;
+KCO.A34B2 = KCO.A34B2nom + KCO.A34B2hyst ;
+KCO.A45B2 = KCO.A45B2nom + KCO.A45B2hyst ;
+KCO.A56B2 = KCO.A56B2nom + KCO.A56B2hyst ;
+KCO.A67B2 = KCO.A67B2nom + KCO.A67B2hyst ;
+KCO.A78B2 = KCO.A78B2nom + KCO.A78B2hyst ;
+KCO.A81B2 = KCO.A81B2nom + KCO.A81B2hyst ;
+
+KCO.A12B2 = KCO.A12B2 + KCObeambasedknob ;
+KCO.A23B2 = KCO.A23B2 + KCObeambasedknob ;
+KCO.A34B2 = KCO.A34B2 + KCObeambasedknob ;
+KCO.A45B2 = KCO.A45B2 + KCObeambasedknob ;
+KCO.A56B2 = KCO.A56B2 + KCObeambasedknob ;
+KCO.A67B2 = KCO.A67B2 + KCObeambasedknob ;
+KCO.A78B2 = KCO.A78B2 + KCObeambasedknob ;
+KCO.A81B2 = KCO.A81B2 + KCObeambasedknob ;
+
+

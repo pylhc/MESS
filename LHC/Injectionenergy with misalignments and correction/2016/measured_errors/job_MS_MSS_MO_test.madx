@@ -1,0 +1,37 @@
+title, "LHC V6.503  -  MO, MS, MSS error test";
+ system, "ln -s /afs/cern.ch/eng/lhc/optics/V6.503 db";
+
+! saved on 14/09/12 12:23:48 by T.Risselada
+
+ option, -echo, -warn;
+ call, file="db/V6.5.thin.seq";
+ call, file="db/measured_errors/Msubroutines.madx";
+ call, file="db/measured_errors/Msubroutines_MS_MSS_MO.madx";
+ option, echo, -info;
+
+! use round numbers for testing
+ kof.a12b1  = +0.010; kod.a12b1  = -0.010;
+ ksf1.a12b1 = +0.010; ksd1.a12b1 = -0.010;
+ ksf2.a12b1 = +0.010; ksd2.a12b1 = -0.010;
+ kss.a12b1  = +0.010;
+
+ beam; use, sequence=lhcb1;
+
+! the following table will need to be created
+ readtable, file="db/measured_errors/MO-MS-MSS_error-test.tfs";  // dummy table
+ readtable, file="db/measured_errors/rotations_Q2_integral.tab";
+
+ exec,   On_Syst;
+ mylhcbeam = 1;
+
+ call,   file="db/measured_errors/Efcomp_MO.madx"  ;
+ call,   file="db/measured_errors/Efcomp_MS.madx"  ;
+ call,   file="db/measured_errors/Efcomp_MSS.madx" ;
+
+ select, flag=error, class=mo;
+ select, flag=error, class=ms;
+ select, flag=error, class=mss;
+ set,    format="12.4e";
+ esave,  file="efield.new.esa";
+
+stop;

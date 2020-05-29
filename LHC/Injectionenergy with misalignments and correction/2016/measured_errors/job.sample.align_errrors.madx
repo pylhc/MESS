@@ -1,0 +1,31 @@
+title,   "Apply position errors read from a TFS table";
+
+! saved on 10/12/09 11:44:37 by T.Risselada
+
+ option, -warn, -echo, -info, verify;
+ call,   file="/afs/cern.ch/eng/lhc/optics/V6.503/V6.5.thin.seq";
+ call,   file="/afs/cern.ch/eng/lhc/optics/V6.503/V6.5.thin.inj.str";
+ option, -warn,  echo;
+
+
+! Beam 1
+!beam,      sequence=lhcb1, particle=proton, pc=450;
+!use,       sequence=lhcb1;
+!readtable, file="/afs/cern.ch/user/f/frs/public_html/Source/LHC-egeoc-b1.tfs";
+
+! Beam 2
+ beam,      sequence=lhcb2, particle=proton, pc=450, bv=-1;
+ use,       sequence=lhcb2;
+ readtable, file="/afs/cern.ch/user/f/frs/public_html/Source/LHC-egeoc-b2.tfs";
+
+
+ call, file="/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/Set_alignment_errors.madx";
+
+
+! check that errors are correct (magnets in sector 12 only)
+!set,    format="12.6f";
+!select, flag=error, clear;
+!select, flag=error, pattern=^M, range=ip1/ip2;
+!esave,  file="esave.tfs";
+
+stop;

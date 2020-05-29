@@ -1,0 +1,19 @@
+qfmid=(ptcqyinit+ptcqxinit)/2.0;
+qxmid=qx00+qfmid;
+qymid=qy00+qfmid;
+value, qfmid,qxmid,qymid;
+
+   dQx.b1_init=dQx.b1;
+   dQy.b1_init=dQy.b1;
+   match;
+	global, q1=62.295, q2=60.295;
+     	vary,   name=dQx.b1, step=1.0E-7 ;
+     	vary,   name=dQy.b1, step=1.0E-7 ;
+     	lmdif,  calls=100, tolerance=1.0E-21;
+   endmatch;
+   dQx.b1=dQx.b1_init;
+   dQy.b1=dQy.b1_init;
+
+dqminacorr = table(summ,q1)-table(summ,q2)-(qx00-qy00);
+twiss;
+value, dqminacorr;

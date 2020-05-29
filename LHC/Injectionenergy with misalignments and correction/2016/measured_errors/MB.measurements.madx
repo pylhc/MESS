@@ -1,0 +1,37 @@
+!------------------------------------------------------------------------
+!      SIMULATE THE RESULTS OF OFF/ON-LINE MAGNETIC MEASUREMENTS
+!------------------------------------------------------------------------
+
+! saved on 06/07/06 16:15:39 by T.Risselada
+
+ select, flag=error, clear;
+ select, flag=error, class=mb;
+ esave,  file="temp/MB.errors";
+
+
+ system, "grep R1 temp/MB.errors > temp/MB.12"; system, "grep L2 temp/MB.errors >> temp/MB.12";
+ system, "grep R2 temp/MB.errors > temp/MB.23"; system, "grep L3 temp/MB.errors >> temp/MB.23";
+
+ system, "grep R3 temp/MB.errors > temp/MB.34"; system, "grep L4 temp/MB.errors >> temp/MB.34";
+ system, "grep R4 temp/MB.errors > temp/MB.45"; system, "grep L5 temp/MB.errors >> temp/MB.45";
+
+ system, "grep R5 temp/MB.errors > temp/MB.56"; system, "grep L6 temp/MB.errors >> temp/MB.56";
+ system, "grep R6 temp/MB.errors > temp/MB.67"; system, "grep L7 temp/MB.errors >> temp/MB.67";
+
+ system, "grep R7 temp/MB.errors > temp/MB.78"; system, "grep L8 temp/MB.errors >> temp/MB.78";
+ system, "grep R8 temp/MB.errors > temp/MB.81"; system, "grep L1 temp/MB.errors >> temp/MB.81";
+
+
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.12"; call,file="temp/MB.12.mad";
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.23"; call,file="temp/MB.23.mad";
+
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.34"; call,file="temp/MB.34.mad";
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.45"; call,file="temp/MB.45.mad";
+
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.56"; call,file="temp/MB.56.mad";
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.67"; call,file="temp/MB.67.mad";
+
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.78"; call,file="temp/MB.78.mad";
+ system, "/afs/cern.ch/eng/lhc/optics/V6.503/measured_errors/read.magnet.errors temp/MB.81"; call,file="temp/MB.81.mad";
+
+return;
