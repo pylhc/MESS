@@ -1,0 +1,15 @@
+use,sequence=lhcb1;
+use,sequence=lhcb2;
+match,sequence=lhcb1,lhcb2;
+global,sequence=lhcb1, q1=Qxb1, q2=Qyb1;
+global,sequence=lhcb2, q1=Qxb2, q2=Qyb2;
+vary,   name=kqf, step=1.0E-7;
+vary,   name=kqd, step=1.0E-7;
+jacobian,  calls=5, tolerance=1.0E-21;
+endmatch;
+
+tartune=tar;
+
+value, tartune;
+value, kqd,kqf;
+

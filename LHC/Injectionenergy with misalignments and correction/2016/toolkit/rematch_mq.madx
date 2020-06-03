@@ -1,0 +1,32 @@
+!muxa23b1 = 5.49854667040207 ;
+!muya23b1 = 5.09844845835827 ;
+!
+!
+!!seqedit,sequence=lhcb1;flatten;cycle,start=s.ds.l1.b1;endedit;
+!!seqedit,sequence=lhcb2;flatten;cycle,start=s.ds.l1.b2;endedit;
+!!
+!!use,sequence=lhcb1;twiss;
+!!muxa23b1=table(twiss,s.ds.l3.b1,mux)-table(twiss,e.ds.r2.b1,mux);
+!!muya23b1=table(twiss,s.ds.l3.b1,muy)-table(twiss,e.ds.r2.b1,muy);
+!!value,muxa23b1,muya23b1;
+!
+!exec,select(2,12,23,b1);
+!exec,select(3,23,34,b1);
+!
+!use,sequence=lhcb1,range=e.ds.r2.b1/s.ds.l3.b1;
+!
+!match,      sequence=lhcb1, beta0=eir2b1;
+!constraint, sequence=lhcb1, range=s.ds.l3.b1,   mux=muxa23b1,muy=muya23b1;
+!vary,   name=kqf, step=1.0E-7;
+!vary,   name=kqd, step=1.0E-7;
+!jacobian,  calls=15, tolerance=1.0E-21;
+!endmatch;
+
+match;
+global, q1=Qxb1, q2=Qyb1;
+vary,   name=kqf, step=1.0E-7;
+vary,   name=kqd, step=1.0E-7;
+jacobian,  calls=15, tolerance=1.0E-21;
+endmatch;
+
+value,kqf,kqd;

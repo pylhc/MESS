@@ -1,0 +1,481 @@
+! tune and chroma are matched with default crossing knobs
+! twiss at the IP are matched without crossing and without MQT trims and nominal MQ
+! crossing normalizations are computed with all ones
+
+use,sequence=lhcb1;twiss;
+refqxb1=table(summ,q1);
+refqyb1=table(summ,q2);
+refqpxb1=table(summ,dq1);
+refqpyb1=table(summ,dq2);
+use,sequence=lhcb2;twiss;
+refqxb2=table(summ,q1);
+refqyb2=table(summ,q2);
+refqpxb2=table(summ,dq1);
+refqpyb2=table(summ,dq2);
+
+
+
+save_irtwiss(NIR,BIM): macro = {
+refbetxipNIRBIM=table(twiss,IPNIR,betx);
+refbetyipNIRBIM=table(twiss,IPNIR,bety);
+refalfxipNIRBIM=table(twiss,IPNIR,alfx);
+refalfyipNIRBIM=table(twiss,IPNIR,alfy);
+refdxipNIRBIM=table(twiss,IPNIR,dx);
+refdpxipNIRBIM=table(twiss,IPNIR,dpx);
+refmuxipNIRBIM=table(twiss,e.ds.rNIR.BIM,mux)-table(twiss,s.ds.lNIR.BIM,mux);
+refmuyipNIRBIM=table(twiss,e.ds.rNIR.BIM,muy)-table(twiss,s.ds.lNIR.BIM,muy);
+refmuxipNIRBIM_l =table(twiss,IPNIR,mux)-table(twiss,s.ds.lNIR.BIM,mux);
+refmuyipNIRBIM_l =table(twiss,IPNIR,muy)-table(twiss,s.ds.lNIR.BIM,muy);
+refmuxipNIRBIM_r =table(twiss,e.ds.rNIR.BIM,mux) - table(twiss,IPNIR,mux);
+refmuyipNIRBIM_r =table(twiss,e.ds.rNIR.BIM,muy) - table(twiss,IPNIR,muy);
+};
+save_arctwiss(NIRA,NIRB,BIM): macro = {
+refmuxaNIRBNIRABIM=table(twiss,s.ds.lNIRB.BIM,mux)-table(twiss,e.ds.rNIRA.BIM,mux);
+refmuyaNIRBNIRABIM=table(twiss,s.ds.lNIRB.BIM,muy)-table(twiss,e.ds.rNIRA.BIM,muy);
+};
+
+on_sep1=0;on_x1=0;on_o1=0;on_a1=0;
+on_sep2=0;on_x2=0;on_o2=0;on_a2=0;on_alice=0; on_oe2=0;
+on_sep5=0;on_x5=0;on_o5=0;on_a5=0;
+on_sep8=0;on_x8=0;on_o8=0;on_a8=0;on_lhcb=0;
+
+! For injection optics
+!kqtd.b1ref=kqtd.b1;kqtd.b2ref=kqtd.b2;
+!kqtf.b1ref=kqtf.b1;kqtf.b2ref=kqtf.b2;
+!kqtd.b1 =  0.0; kqtd.b2 =  0.0;
+!kqtf.b1 =  0.0; kqtf.b2 =  0.0;
+!
+!kqfref=kqf; kqdref=kqd;
+!if (is_thin==1){ call,file="db5/Misc/mq_thin.madx";};
+!if (is_thin==0){ call,file="db5/Misc/mq.madx";};
+
+
+seqedit,sequence=lhcb1;flatten;cycle,start=s.cell.12.b1;endedit;
+seqedit,sequence=lhcb2;flatten;cycle,start=s.cell.12.b2;endedit;
+use,sequence=lhcb1;twiss;
+exec,save_irtwiss(1,b1);exec,save_arctwiss(1,2,b1);
+exec,save_irtwiss(2,b1);exec,save_arctwiss(2,3,b1);
+exec,save_irtwiss(3,b1);exec,save_arctwiss(3,4,b1);
+exec,save_irtwiss(4,b1);exec,save_arctwiss(4,5,b1);
+exec,save_irtwiss(5,b1);exec,save_arctwiss(5,6,b1);
+exec,save_irtwiss(6,b1);exec,save_arctwiss(6,7,b1);
+exec,save_irtwiss(7,b1);exec,save_arctwiss(7,8,b1);
+exec,save_irtwiss(8,b1);exec,save_arctwiss(8,1,b1);
+use,sequence=lhcb2;twiss;
+exec,save_irtwiss(1,b2);exec,save_arctwiss(1,2,b2);
+exec,save_irtwiss(2,b2);exec,save_arctwiss(2,3,b2);
+exec,save_irtwiss(3,b2);exec,save_arctwiss(3,4,b2);
+exec,save_irtwiss(4,b2);exec,save_arctwiss(4,5,b2);
+exec,save_irtwiss(5,b2);exec,save_arctwiss(5,6,b2);
+exec,save_irtwiss(6,b2);exec,save_arctwiss(6,7,b2);
+exec,save_irtwiss(7,b2);exec,save_arctwiss(7,8,b2);
+exec,save_irtwiss(8,b2);exec,save_arctwiss(8,1,b2);
+!kqtd.b1 = kqtd.b1ref;
+!kqtd.b2 = kqtd.b2ref;
+!kqtf.b1 = kqtf.b1ref;
+!kqtf.b2 = kqtf.b2ref;
+!kqf=kqfref; kqd=kqdref;
+
+
+on_sep1=1;on_x1=1;on_o1=1;on_a1=1;
+on_sep2=1;on_x2=1;on_o2=1;on_a2=1;on_alice=0;
+on_sep5=1;on_x5=1;on_o5=1;on_a5=1;
+on_sep8=1;on_x8=1;on_o8=1;on_a8=1;on_lhcb=0;
+use,sequence=lhcb1;twiss;
+refpyip1b1=table(twiss,ip1,py);
+refpyip2b1=table(twiss,ip2,py);
+refpxip5b1=table(twiss,ip5,px);
+refpxip8b1=table(twiss,ip8,px);
+refxip1b1=table(twiss,ip1, x);
+refxip2b1=table(twiss,ip2, x);
+refyip5b1=table(twiss,ip5, y);
+refyip8b1=table(twiss,ip8, y);
+refyip1b1=table(twiss,ip1, y);
+refyip2b1=table(twiss,ip2, y);
+refxip5b1=table(twiss,ip5, x);
+refxip8b1=table(twiss,ip8, x);
+refpxip1b1=table(twiss,ip1,px);
+refpxip2b1=table(twiss,ip2,px);
+refpyip5b1=table(twiss,ip5,py);
+refpyip8b1=table(twiss,ip8,py);
+on_o2=0; on_oe2=1;
+twiss; refyip2b1_oe2=table(twiss,ip2, y);
+on_oe2=0; on_o2=1;
+use,sequence=lhcb2;twiss;
+refpyip1b2=table(twiss,ip1,py);
+refpyip2b2=table(twiss,ip2,py);
+refpxip5b2=table(twiss,ip5,px);
+refpxip8b2=table(twiss,ip8,px);
+refxip1b2=table(twiss,ip1, x);
+refxip2b2=table(twiss,ip2, x);
+refyip5b2=table(twiss,ip5, y);
+refyip8b2=table(twiss,ip8, y);
+refyip1b2=table(twiss,ip1, y);
+refyip2b2=table(twiss,ip2, y);
+refxip5b2=table(twiss,ip5, x);
+refxip8b2=table(twiss,ip8, x);
+refpxip1b2=table(twiss,ip1,px);
+refpxip2b2=table(twiss,ip2,px);
+refpyip5b2=table(twiss,ip5,py);
+refpyip8b2=table(twiss,ip8,py);
+on_o2=0; on_oe2=1;
+twiss; refyip2b2_oe2=table(twiss,ip2, y);
+on_oe2=0; on_o2=1;
+
+on_sep1=0;on_x1=0;on_o1=0;on_a1=0;
+on_sep2=0;on_x2=0;on_o2=0;on_a2=0;on_oe2=0;
+on_sep5=0;on_x5=0;on_o5=0;on_a5=0;
+on_sep8=0;on_x8=0;on_o8=0;on_a8=0;
+
+copyknob(irn,kkk,ppp):macro={
+on_kkkirn=1;
+acbxppp1.lirn_on_kkkirn =acbxppp1.lirn;
+acbxppp1.rirn_on_kkkirn =acbxppp1.rirn;
+acbxppp2.lirn_on_kkkirn =acbxppp2.lirn;
+acbxppp2.rirn_on_kkkirn =acbxppp2.rirn;
+acbxppp3.lirn_on_kkkirn =acbxppp3.lirn;
+acbxppp3.rirn_on_kkkirn =acbxppp3.rirn;
+
+acbyppps4.lirnb1_on_kkkirn  =acbyppps4.lirnb1;
+acbyppps4.lirnb2_on_kkkirn  =acbyppps4.lirnb2;
+acbyppps4.rirnb1_on_kkkirn  =acbyppps4.rirnb1;
+acbyppps4.rirnb2_on_kkkirn  =acbyppps4.rirnb2;
+
+acbyppps5.lirnb1_on_kkkirn  =acbyppps5.lirnb1;
+acbyppps5.lirnb2_on_kkkirn  =acbyppps5.lirnb2;
+acbyppps5.rirnb1_on_kkkirn  =acbyppps5.rirnb1;
+acbyppps5.rirnb2_on_kkkirn  =acbyppps5.rirnb2;
+
+acbcppps5.lirnb1_on_kkkirn  =acbcppps5.lirnb1;
+acbcppps5.lirnb2_on_kkkirn  =acbcppps5.lirnb2;
+acbcppps5.rirnb1_on_kkkirn  =acbcppps5.rirnb1;
+acbcppps5.rirnb2_on_kkkirn  =acbcppps5.rirnb2;
+
+acbyppp4.lirnb1_on_kkkirn  =acbyppp4.lirnb1 ;
+acbyppp4.rirnb1_on_kkkirn  =acbyppp4.rirnb1 ;
+acbyppp4.lirnb2_on_kkkirn  =acbyppp4.lirnb2 ;
+acbyppp4.rirnb2_on_kkkirn  =acbyppp4.rirnb2 ;
+
+acbyppp5.lirnb1_on_kkkirn  =acbyppp5.lirnb1 ;
+acbyppp5.rirnb1_on_kkkirn  =acbyppp5.rirnb1 ;
+acbyppp5.lirnb2_on_kkkirn  =acbyppp5.lirnb2 ;
+acbyppp5.rirnb2_on_kkkirn  =acbyppp5.rirnb2 ;
+
+acbcppp5.lirnb1_on_kkkirn  =acbcppp5.lirnb1 ;
+acbcppp5.rirnb1_on_kkkirn  =acbcppp5.rirnb1 ;
+acbcppp5.lirnb2_on_kkkirn  =acbcppp5.lirnb2 ;
+acbcppp5.rirnb2_on_kkkirn  =acbcppp5.rirnb2 ;
+
+acbcppp6.lirnb1_on_kkkirn  =acbcppp6.lirnb1 ;
+acbcppp6.rirnb1_on_kkkirn  =acbcppp6.rirnb1 ;
+acbcppp6.lirnb2_on_kkkirn  =acbcppp6.lirnb2 ;
+acbcppp6.rirnb2_on_kkkirn  =acbcppp6.rirnb2 ;
+
+acbcppp7.lirnb1_on_kkkirn  =acbcppp7.lirnb1 ;
+acbcppp7.rirnb1_on_kkkirn  =acbcppp7.rirnb1 ;
+acbcppp7.lirnb2_on_kkkirn  =acbcppp7.lirnb2 ;
+acbcppp7.rirnb2_on_kkkirn  =acbcppp7.rirnb2 ;
+
+on_kkkirn=0;
+};
+
+exec,copyknob(1,sep,h); exec,copyknob(1,x,v); exec,copyknob(1,o,v); exec,copyknob(1,a,h);
+exec,copyknob(2,sep,h); exec,copyknob(2,x,v); exec,copyknob(2,o,v); exec,copyknob(2,a,h);  exec,copyknob(2,oe,v);
+exec,copyknob(5,sep,v); exec,copyknob(5,x,h); exec,copyknob(5,o,h); exec,copyknob(5,a,v);
+exec,copyknob(8,sep,v); exec,copyknob(8,x,h); exec,copyknob(8,o,h); exec,copyknob(8,a,v);
+
+
+on_sep1=0;on_x1=0;on_o1=0;on_a1=0;
+on_sep2=0;on_x2=0;on_o2=0;on_a2=0; on_oe2=0;
+on_sep5=0;on_x5=0;on_o5=0;on_a5=0;
+on_sep8=0;on_x8=0;on_o8=0;on_a8=0;
+
+
+system,"rm temp/optics.madx";
+option,-echo, -info;assign, echo="temp/optics.madx";
+
+
+print,text="!*** Beta* at the IP ***";
+printf,text="beta.ip1    =   %2.3f ;",value=refbetxip1b1;
+printf,text="beta.ip2    =   %2.3f ;",value=refbetxip2b1;
+printf,text="beta.ip5    =   %2.3f ;",value=refbetxip5b1;
+printf,text="beta.ip8    =   %2.3f ;",value=refbetxip8b1;
+print,text="";
+
+print,text="!*** IP orbit knob definitions ***";
+printf,text="py.ip1:=%+16.9f*on_x1;"  ,value=refpyip1b1;
+printf,text="py.ip2:=%+16.9f*on_x2;"  ,value=refpyip2b1;
+printf,text="px.ip5:=%+16.9f*on_x5;"  ,value=refpxip5b1;
+printf,text="px.ip8:=%+16.9f*on_x8;"  ,value=refpxip8b1;
+printf,text="x.ip1 :=%+16.6f*on_sep1;",value=refxip1b1;
+printf,text="x.ip2 :=%+16.6f*on_sep2;",value=refxip2b1;
+printf,text="y.ip5 :=%+16.6f*on_sep5;",value=refyip5b1;
+printf,text="y.ip8 :=%+16.6f*on_sep8;",value=refyip8b1;
+printf,text="y.ip1 :=%+16.6f*on_o1;"  ,value=refyip1b1;
+printf,text="y.ip2 :=%+16.6f*on_o2  %+16.6f*on_oe2;",
+value=refyip2b1,refyip2b1_oe2;
+printf,text="x.ip5 :=%+16.6f*on_o5;"  ,value=refxip5b1;
+printf,text="x.ip8 :=%+16.6f*on_o8;"  ,value=refxip8b1;
+!printf,text="px.ip1:=%+16.9f*on_a1;"  ,value=refpxip1b1;
+printf,text="px.ip2:=%+16.9f*on_a2;"  ,value=refpxip2b1;
+!printf,text="py.ip5:=%+16.9f*on_a5;"  ,value=refpyip5b1;
+printf,text="py.ip8:=%+16.9f*on_a8;"  ,value=refpyip8b1;
+print,text="";
+
+print,text="!*** IP orbit settings ***";
+printf,text="on_x1  =%2g;",value=on_x1_ref;
+printf,text="on_sep1=%2g;",value=on_sep1_ref;
+printf,text="on_o1  =%2g;",value=on_o1_ref;
+!printf,text="on_a1  =%2g;",value=on_a1_ref;
+printf,text="on_x2  =%2g;",value=on_x2_ref;
+printf,text="on_sep2=%2g;",value=on_sep2_ref;
+printf,text="on_o2  =%2g;",value=on_o2_ref;
+printf,text="on_oe2 =%2g;",value=on_oe2_ref;
+printf,text="on_a2  =%2g;",value=on_a2_ref;
+printf,text="on_x5  =%2g;",value=on_x5_ref;
+printf,text="on_sep5=%2g;",value=on_sep5_ref;
+printf,text="on_o5  =%2g;",value=on_o5_ref;
+!printf,text="on_a5  =%2g;",value=on_a5_ref;
+printf,text="on_x8  =%2g;",value=on_x8_ref;
+printf,text="on_sep8=%2g;",value=on_sep8_ref;
+printf,text="on_o8  =%2g;",value=on_o8_ref;
+printf,text="on_a8  =%2g;",value=on_a8_ref;
+print,text="";
+
+print,text="!*** Experiment state ***";
+printf,text="nrj=%g; on_alice:=%g/nrj; on_lhcb:=%g/nrj;",
+  value=nrj,on_alice_ref*nrj,on_lhcb_ref*nrj;
+printf,text="on_sol_atlas=%g;on_sol_alice=%g;on_sol_cms=%g;",
+  value=on_sol_atlas_ref,on_sol_alice_ref,on_sol_cms_ref;
+print,text="";
+
+print,text="!*** tunes and chroma ***";
+printf,text="qxb1  = %9.5f ; qyb1  = %9.5f ;",value=refqxb1,refqyb1;
+printf,text="qxb2  = %9.5f ; qyb2  = %9.5f ;",value=refqxb2,refqyb2;
+printf,text="qpxb1 = %9.5f ; qpyb1 = %9.5f ;",value=refqpxb1,refqpyb1;
+printf,text="qpxb2 = %9.5f ; qpyb2 = %9.5f ;",value=refqpxb2,refqpyb2;
+print,text="";
+
+print,text="!*** experiment's magnets***";
+print,text="abas        := 12.00/ 6.0*clight/(7e12)*on_sol_atlas;";
+print,text="abls        := 6.05/12.1*clight/(7e12)*on_sol_alice ;";
+print,text="abcs        := 52.00/13.0*clight/(7e12)*on_sol_cms  ;";
+
+print,text="abxwt.l2    := -0.0000772587268993839836*on_alice ;";
+print,text="abwmd.l2    := +0.0001472587268993839840*on_alice ;";
+print,text="abaw.r2     := -0.0001335474860334838000*on_alice ;";
+print,text="abxwt.r2    := +0.0000635474860334838004*on_alice ;";
+
+print,text="abxws.l8    := -0.000045681598453109894*on_lhcb   ;";
+print,text="abxwh.l8    := +0.000180681598453109894*on_lhcb   ;";
+print,text="ablw.r8     := -0.000180681598453109894*on_lhcb   ;";
+print,text="abxws.r8    := +0.000045681598453109894*on_lhcb   ;";
+print,text="";
+
+print,text="!*** main dipoles ***";
+print,text="kb.a12      :=  ab.a12/l.mb   ;";
+print,text="kb.a23      :=  ab.a23/l.mb   ;";
+print,text="kb.a34      :=  ab.a34/l.mb   ;";
+print,text="kb.a45      :=  ab.a45/l.mb   ;";
+print,text="kb.a56      :=  ab.a56/l.mb   ;";
+print,text="kb.a67      :=  ab.a67/l.mb   ;";
+print,text="kb.a78      :=  ab.a78/l.mb   ;";
+print,text="kb.a81      :=  ab.a81/l.mb   ;";
+print,text="";
+
+print,text="!*** separation/recombination dipoles ***";
+print,text="kd1.lr1     :=  ad1.lr1/l.mbxw;";
+print,text="kd2.l1      :=  ad2.l1/l.mbrc ;";
+print,text="kd2.r1      :=  ad2.r1/l.mbrc ;";
+print,text="kd1.l2      :=  ad1.l2/l.mbx  ;";
+print,text="kd1.r2      :=  ad1.r2/l.mbx  ;";
+print,text="kd2.l2      :=  ad2.l2/l.mbrc ;";
+print,text="kd2.r2      :=  ad2.r2/l.mbrc ;";
+print,text="kd3.lr3     :=  ad3.lr3/l.mbw ;";
+print,text="kd4.lr3     :=  ad4.lr3/l.mbw ;";
+print,text="kd3.l4      :=  ad3.l4/l.mbrs ;";
+print,text="kd3.r4      :=  ad3.r4/l.mbrs ;";
+print,text="kd4.l4      :=  ad4.l4/l.mbrb ;";
+print,text="kd4.r4      :=  ad4.r4/l.mbrb ;";
+print,text="kd34.lr3    :=  ad3.lr3/l.mbw ;";
+print,text="kd34.lr7    :=  ad3.lr7/l.mbw ;";
+print,text="kd1.lr5     :=  ad1.lr5/l.mbxw;";
+print,text="kd2.l5      :=  ad2.l5/l.mbrc ;";
+print,text="kd2.r5      :=  ad2.r5/l.mbrc ;";
+print,text="kd3.lr7     :=  ad3.lr7/l.mbw ;";
+print,text="kd4.lr7     :=  ad4.lr7/l.mbw ;";
+print,text="kd1.l8      :=  ad1.l8/l.mbx  ;";
+print,text="kd1.r8      :=  ad1.r8/l.mbx  ;";
+print,text="kd2.l8      :=  ad2.l8/l.mbrc ;";
+print,text="kd2.r8      :=  ad2.r8/l.mbrc ;";
+print,text="ksumd2.l1b2 :=  kd2.l1        ;";
+print,text="ksumd2.l2b2 :=  kd2.l2        ;";
+print,text="ksumd2.l5b2 :=  kd2.l5        ;";
+print,text="ksumd2.l8b2 :=  kd2.l8        ;";
+print,text="ksumd2.r1b2 :=  kd2.l1        ;";
+print,text="ksumd2.r2b2 :=  kd2.l2        ;";
+print,text="ksumd2.r5b2 :=  kd2.l5        ;";
+print,text="ksumd2.r8b2 :=  kd2.l8        ;";
+print,text="";
+
+print,text="!*** main quadrupoles ***";
+printf,text="kqf         =  %30.24f ;",value=kqf;
+printf,text="kqd         =  %30.24f ;",value=kqd;
+refkqf.a12=kqf.a12-kqf;
+refkqd.a12=kqd.a12-kqd;
+refkqf.a23=kqf.a23-kqf;
+refkqd.a23=kqd.a23-kqd;
+refkqf.a34=kqf.a34-kqf;
+refkqd.a34=kqd.a34-kqd;
+refkqf.a45=kqf.a45-kqf;
+refkqd.a45=kqd.a45-kqd;
+refkqf.a56=kqf.a56-kqf;
+refkqd.a56=kqd.a56-kqd;
+refkqf.a67=kqf.a67-kqf;
+refkqd.a67=kqd.a67-kqd;
+refkqf.a78=kqf.a78-kqf;
+refkqd.a78=kqd.a78-kqd;
+refkqf.a81=kqf.a81-kqf;
+refkqd.a81=kqd.a81-kqd;
+printf,text="kqf.a12    :=  %30.24f + kqf;",value=refkqf.a12;
+printf,text="kqd.a12    :=  %30.24f + kqd;",value=refkqd.a12;
+printf,text="kqf.a23    :=  %30.24f + kqf;",value=refkqf.a23;
+printf,text="kqd.a23    :=  %30.24f + kqd;",value=refkqd.a23;
+printf,text="kqf.a34    :=  %30.24f + kqf;",value=refkqf.a34;
+printf,text="kqd.a34    :=  %30.24f + kqd;",value=refkqd.a34;
+printf,text="kqf.a45    :=  %30.24f + kqf;",value=refkqf.a45;
+printf,text="kqd.a45    :=  %30.24f + kqd;",value=refkqd.a45;
+printf,text="kqf.a56    :=  %30.24f + kqf;",value=refkqf.a56;
+printf,text="kqd.a56    :=  %30.24f + kqd;",value=refkqd.a56;
+printf,text="kqf.a67    :=  %30.24f + kqf;",value=refkqf.a67;
+printf,text="kqd.a67    :=  %30.24f + kqd;",value=refkqd.a67;
+printf,text="kqf.a78    :=  %30.24f + kqf;",value=refkqf.a78;
+printf,text="kqd.a78    :=  %30.24f + kqd;",value=refkqd.a78;
+printf,text="kqf.a81    :=  %30.24f + kqf;",value=refkqf.a81;
+printf,text="kqd.a81    :=  %30.24f + kqd;",value=refkqd.a81;
+print,text="";
+
+print,text="!*** main trim quadrupoles ***";
+printf,text="kqtf.b1    =  %30.24f ;",value=kqtf.b1;
+printf,text="kqtd.b1    =  %30.24f ;",value=kqtd.b1;
+printf,text="kqtf.b2    =  %30.24f ;",value=kqtf.b2;
+printf,text="kqtd.b2    =  %30.24f ;",value=kqtd.b2;
+
+refkqtf.a12b1=kqtf.a12b1 - kqtf.b1;
+refkqtf.a23b1=kqtf.a23b1 - kqtf.b1;
+refkqtf.a34b1=kqtf.a34b1 - kqtf.b1;
+refkqtf.a45b1=kqtf.a45b1 - kqtf.b1;
+refkqtf.a56b1=kqtf.a56b1 - kqtf.b1;
+refkqtf.a67b1=kqtf.a67b1 - kqtf.b1;
+refkqtf.a78b1=kqtf.a78b1 - kqtf.b1;
+refkqtf.a81b1=kqtf.a81b1 - kqtf.b1;
+refkqtf.a12b2=kqtf.a12b2 - kqtf.b2;
+refkqtf.a23b2=kqtf.a23b2 - kqtf.b2;
+refkqtf.a34b2=kqtf.a34b2 - kqtf.b2;
+refkqtf.a45b2=kqtf.a45b2 - kqtf.b2;
+refkqtf.a56b2=kqtf.a56b2 - kqtf.b2;
+refkqtf.a67b2=kqtf.a67b2 - kqtf.b2;
+refkqtf.a78b2=kqtf.a78b2 - kqtf.b2;
+refkqtf.a81b2=kqtf.a81b2 - kqtf.b2;
+refkqtd.a12b1=kqtd.a12b1 - kqtd.b1;
+refkqtd.a23b1=kqtd.a23b1 - kqtd.b1;
+refkqtd.a34b1=kqtd.a34b1 - kqtd.b1;
+refkqtd.a45b1=kqtd.a45b1 - kqtd.b1;
+refkqtd.a56b1=kqtd.a56b1 - kqtd.b1;
+refkqtd.a67b1=kqtd.a67b1 - kqtd.b1;
+refkqtd.a78b1=kqtd.a78b1 - kqtd.b1;
+refkqtd.a81b1=kqtd.a81b1 - kqtd.b1;
+refkqtd.a12b2=kqtd.a12b2 - kqtd.b2;
+refkqtd.a23b2=kqtd.a23b2 - kqtd.b2;
+refkqtd.a34b2=kqtd.a34b2 - kqtd.b2;
+refkqtd.a45b2=kqtd.a45b2 - kqtd.b2;
+refkqtd.a56b2=kqtd.a56b2 - kqtd.b2;
+refkqtd.a67b2=kqtd.a67b2 - kqtd.b2;
+refkqtd.a78b2=kqtd.a78b2 - kqtd.b2;
+refkqtd.a81b2=kqtd.a81b2 - kqtd.b2;
+printf,text="kqtf.a12b1 := %30.24f + kqtf.b1;",value=refkqtf.a12b1;
+printf,text="kqtf.a23b1 := %30.24f + kqtf.b1;",value=refkqtf.a23b1;
+printf,text="kqtf.a34b1 := %30.24f + kqtf.b1;",value=refkqtf.a34b1;
+printf,text="kqtf.a45b1 := %30.24f + kqtf.b1;",value=refkqtf.a45b1;
+printf,text="kqtf.a56b1 := %30.24f + kqtf.b1;",value=refkqtf.a56b1;
+printf,text="kqtf.a67b1 := %30.24f + kqtf.b1;",value=refkqtf.a67b1;
+printf,text="kqtf.a78b1 := %30.24f + kqtf.b1;",value=refkqtf.a78b1;
+printf,text="kqtf.a81b1 := %30.24f + kqtf.b1;",value=refkqtf.a81b1;
+printf,text="kqtf.a12b2 := %30.24f + kqtf.b2;",value=refkqtf.a12b2;
+printf,text="kqtf.a23b2 := %30.24f + kqtf.b2;",value=refkqtf.a23b2;
+printf,text="kqtf.a34b2 := %30.24f + kqtf.b2;",value=refkqtf.a34b2;
+printf,text="kqtf.a45b2 := %30.24f + kqtf.b2;",value=refkqtf.a45b2;
+printf,text="kqtf.a56b2 := %30.24f + kqtf.b2;",value=refkqtf.a56b2;
+printf,text="kqtf.a67b2 := %30.24f + kqtf.b2;",value=refkqtf.a67b2;
+printf,text="kqtf.a78b2 := %30.24f + kqtf.b2;",value=refkqtf.a78b2;
+printf,text="kqtf.a81b2 := %30.24f + kqtf.b2;",value=refkqtf.a81b2;
+printf,text="kqtd.a12b1 := %30.24f + kqtd.b1;",value=refkqtd.a12b1;
+printf,text="kqtd.a23b1 := %30.24f + kqtd.b1;",value=refkqtd.a23b1;
+printf,text="kqtd.a34b1 := %30.24f + kqtd.b1;",value=refkqtd.a34b1;
+printf,text="kqtd.a45b1 := %30.24f + kqtd.b1;",value=refkqtd.a45b1;
+printf,text="kqtd.a56b1 := %30.24f + kqtd.b1;",value=refkqtd.a56b1;
+printf,text="kqtd.a67b1 := %30.24f + kqtd.b1;",value=refkqtd.a67b1;
+printf,text="kqtd.a78b1 := %30.24f + kqtd.b1;",value=refkqtd.a78b1;
+printf,text="kqtd.a81b1 := %30.24f + kqtd.b1;",value=refkqtd.a81b1;
+printf,text="kqtd.a12b2 := %30.24f + kqtd.b2;",value=refkqtd.a12b2;
+printf,text="kqtd.a23b2 := %30.24f + kqtd.b2;",value=refkqtd.a23b2;
+printf,text="kqtd.a34b2 := %30.24f + kqtd.b2;",value=refkqtd.a34b2;
+printf,text="kqtd.a45b2 := %30.24f + kqtd.b2;",value=refkqtd.a45b2;
+printf,text="kqtd.a56b2 := %30.24f + kqtd.b2;",value=refkqtd.a56b2;
+printf,text="kqtd.a67b2 := %30.24f + kqtd.b2;",value=refkqtd.a67b2;
+printf,text="kqtd.a78b2 := %30.24f + kqtd.b2;",value=refkqtd.a78b2;
+printf,text="kqtd.a81b2 := %30.24f + kqtd.b2;",value=refkqtd.a81b2;
+print,text="";
+
+
+print,text="!*** main sextupoles ***";
+printf,text="ksf.b1     =  %30.24f ;",value=ksf.b1;
+printf,text="ksd.b1     =  %30.24f ;",value=ksd.b1;
+printf,text="ksf.b2     =  %30.24f ;",value=ksf.b2;
+printf,text="ksd.b2     =  %30.24f ;",value=ksd.b2;
+print, text="ksf1.a12b1 :=  ksf.b1; ksd1.a12b1 :=  ksd.b1;";
+print, text="ksf1.a23b1 :=  ksf.b1; ksd1.a23b1 :=  ksd.b1;";
+print, text="ksf1.a34b1 :=  ksf.b1; ksd1.a34b1 :=  ksd.b1;";
+print, text="ksf1.a45b1 :=  ksf.b1; ksd1.a45b1 :=  ksd.b1;";
+print, text="ksf1.a56b1 :=  ksf.b1; ksd1.a56b1 :=  ksd.b1;";
+print, text="ksf1.a67b1 :=  ksf.b1; ksd1.a67b1 :=  ksd.b1;";
+print, text="ksf1.a78b1 :=  ksf.b1; ksd1.a78b1 :=  ksd.b1;";
+print, text="ksf1.a81b1 :=  ksf.b1; ksd1.a81b1 :=  ksd.b1;";
+print, text="ksf1.a12b2 :=  ksf.b2; ksd1.a12b2 :=  ksd.b2;";
+print, text="ksf1.a23b2 :=  ksf.b2; ksd1.a23b2 :=  ksd.b2;";
+print, text="ksf1.a34b2 :=  ksf.b2; ksd1.a34b2 :=  ksd.b2;";
+print, text="ksf1.a45b2 :=  ksf.b2; ksd1.a45b2 :=  ksd.b2;";
+print, text="ksf1.a56b2 :=  ksf.b2; ksd1.a56b2 :=  ksd.b2;";
+print, text="ksf1.a67b2 :=  ksf.b2; ksd1.a67b2 :=  ksd.b2;";
+print, text="ksf1.a78b2 :=  ksf.b2; ksd1.a78b2 :=  ksd.b2;";
+print, text="ksf1.a81b2 :=  ksf.b2; ksd1.a81b2 :=  ksd.b2;";
+print, text="ksf2.a12b1 :=  ksf.b1; ksd2.a12b1 :=  ksd.b1;";
+print, text="ksf2.a23b1 :=  ksf.b1; ksd2.a23b1 :=  ksd.b1;";
+print, text="ksf2.a34b1 :=  ksf.b1; ksd2.a34b1 :=  ksd.b1;";
+print, text="ksf2.a45b1 :=  ksf.b1; ksd2.a45b1 :=  ksd.b1;";
+print, text="ksf2.a56b1 :=  ksf.b1; ksd2.a56b1 :=  ksd.b1;";
+print, text="ksf2.a67b1 :=  ksf.b1; ksd2.a67b1 :=  ksd.b1;";
+print, text="ksf2.a78b1 :=  ksf.b1; ksd2.a78b1 :=  ksd.b1;";
+print, text="ksf2.a81b1 :=  ksf.b1; ksd2.a81b1 :=  ksd.b1;";
+print, text="ksf2.a12b2 :=  ksf.b2; ksd2.a12b2 :=  ksd.b2;";
+print, text="ksf2.a23b2 :=  ksf.b2; ksd2.a23b2 :=  ksd.b2;";
+print, text="ksf2.a34b2 :=  ksf.b2; ksd2.a34b2 :=  ksd.b2;";
+print, text="ksf2.a45b2 :=  ksf.b2; ksd2.a45b2 :=  ksd.b2;";
+print, text="ksf2.a56b2 :=  ksf.b2; ksd2.a56b2 :=  ksd.b2;";
+print, text="ksf2.a67b2 :=  ksf.b2; ksd2.a67b2 :=  ksd.b2;";
+print, text="ksf2.a78b2 :=  ksf.b2; ksd2.a78b2 :=  ksd.b2;";
+print, text="ksf2.a81b2 :=  ksf.b2; ksd2.a81b2 :=  ksd.b2;";
+print,text="";
+
+
+call,file="db5/toolkit/save_optics_ir1.madx";
+call,file="db5/toolkit/save_optics_ir5.madx";
+call,file="db5/toolkit/save_optics_ir2.madx";
+call,file="db5/toolkit/save_optics_ir8.madx";
+call,file="db5/toolkit/save_optics_ir4.madx";
+call,file="db5/toolkit/save_optics_ir6.madx";
+call,file="db5/toolkit/save_optics_ir3.madx";
+call,file="db5/toolkit/save_optics_ir7.madx";
+
+
+option,-echo,-info;assign, echo=terminal;

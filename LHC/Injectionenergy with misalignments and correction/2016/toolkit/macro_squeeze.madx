@@ -1,0 +1,102 @@
+sq_savetw3(ir5,aaa,bbb,ccc):macro={
+system,"test -d ir5 || mkdir ir5";
+twiss,sequence=lhcb1,file=ir5/twiss_lhcb1_aaa_bbb_ccc.tfs;
+twiss,sequence=lhcb2,file=ir5/twiss_lhcb2_aaa_bbb_ccc.tfs;
+};
+
+sq_savebound(ir5,aaa,bbb):macro={
+setvars,table=ir5,row=aaa; exec,sq_savetw3(ir5,aaa,bbb,0);
+setvars,table=ir5,row=bbb; exec,sq_savetw3(ir5,aaa,bbb,100);
+};
+
+
+sq_savestep(ir5,aaa,bbb,ttt):macro={
+setvars_lin,table=ir5,row2=aaa,row1=bbb,param=ttt/100;
+exec,sq_savetw3(ir5,aaa,bbb,ttt);
+print,text="db5/toolkit/check_bbeat3.py ir5/twiss_lhcb1_aaa_bbb_0.tfs ir5/twiss_lhcb1_aaa_bbb_100.tfs ir5/twiss_lhcb1_aaa_bbb_ttt.tfs ttt";
+system,"db5/toolkit/check_bbeat3.py ir5/twiss_lhcb1_aaa_bbb_0.tfs ir5/twiss_lhcb1_aaa_bbb_100.tfs ir5/twiss_lhcb1_aaa_bbb_ttt.tfs ttt >res.madx";
+system,"cat res.madx"; call,file=res.madx;
+};
+
+sq_mkerrtable(ir5,pname):macro={
+create,table=ir5_err,column=aaa,bbb,ttt,betx_b1err,bety_b1err,dq1_b1err,dq2_b1err,dx_b1err,dy_b1err,mux_b1err,muy_b1err,q1_b1err,q2_b1err,betx_b2err,bety_b2err,dq1_b2err,dq2_b2err,dx_b2err,dy_b2err,mux_b2err,muy_b2err,q1_b2err,q2_b2err,cox_b1err,coy_b1err,cox_b2err,coy_b2err,betas,bet34x_b1err,bet34x_b2err,bet34y_b1err,bet34y_b2err;
+betas:=pname;
+};
+
+sq_saverrtable(ir5):macro={
+fill,table=ir5_err; write,table=ir5_err,file=ir5_err.tfs;
+};
+
+sq_mkerror(ir5,pname):macro={
+readmytable,table=ir5,file=ir5.tfs;
+exec,sq_mkerrtable(ir5,pname);
+iii=1; iiistop=table(ir5,tablelength);
+while(iii<iiistop){
+  aaa=iii;bbb=iii+1;
+  exec,sq_savebound(ir5,$aaa,$bbb);
+  ttt=0;   exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+  ttt=10;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+  ttt=40;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+  ttt=50;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+  ttt=60;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+  ttt=90;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+  iii=iii+1;
+};
+ttt=100;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+};
+
+sq_mkerrtable_all(squeezetab):macro={
+create,table=squeezetab,column=aaa,bbb,ttt,betx_b1err,bety_b1err,dq1_b1err,dq2_b1err,dx_b1err,dy_b1err,mux_b1err,muy_b1err,q1_b1err,q2_b1err,betx_b2err,bety_b2err,dq1_b2err,dq2_b2err,dx_b2err,dy_b2err,mux_b2err,muy_b2err,q1_b2err,q2_b2err,cox_b1err,coy_b1err,cox_b2err,coy_b2err,beta.ip1,beta.ip2,beta.ip5,beta.ip8;
+beta.ip1:=betxip1b1;
+beta.ip2:=betxip2b1;
+beta.ip5:=betxip5b1;
+beta.ip8:=betxip8b1;
+};
+
+sq_savebound_all(squeezetab,ir1,ir2,ir5,ir8,aaa,bbb):macro={
+setvars,table=ir1,row=bbb1;
+setvars,table=ir2,row=bbb2;
+setvars,table=ir5,row=bbb5;
+setvars,table=ir8,row=bbb8;
+exec,sq_savetw3(squeezetab,aaa,bbb,100);
+};
+
+sq_savestep_all(squeezetab,ir1,ir2,ir5,ir8,aaa,bbb,ttt):macro={
+setvars_lin,table=ir1,row2=aaa1,row1=bbb1,param=ttt/100;
+setvars_lin,table=ir2,row2=aaa2,row1=bbb2,param=ttt/100;
+setvars_lin,table=ir5,row2=aaa5,row1=bbb5,param=ttt/100;
+setvars_lin,table=ir8,row2=aaa8,row1=bbb8,param=ttt/100;
+exec,sq_savetw3(squeezetab,aaa,bbb,ttt);
+print,text="db5/toolkit/check_bbeat3.py squeezetab/twiss_lhcb1_aaa_bbb_0.tfs squeezetab/twiss_lhcb1_aaa_bbb_100.tfs squeezetab/twiss_lhcb1_aaa_bbb_ttt.tfs ttt";
+system,"db5/toolkit/check_bbeat3.py squeezetab/twiss_lhcb1_aaa_bbb_0.tfs squeezetab/twiss_lhcb1_aaa_bbb_100.tfs squeezetab/twiss_lhcb1_aaa_bbb_ttt.tfs ttt >_sqres.madx";
+system,"cat _sqres.madx"; call,file=_sqres.madx;
+};
+
+sq_mkerror_all(squeezetab,ir1,ir2,ir5,ir8):macro={
+readmytable,table=squeezetab,file=squeezetab.tfs;
+exec,sq_mkerrtable(ir1,betxip1b1);
+exec,sq_mkerrtable(ir2,betxip2b1);
+exec,sq_mkerrtable(ir5,betxip5b1);
+exec,sq_mkerrtable(ir8,betxip8b1);
+iii=1; iiistop=table(squeezetab,tablelength);
+while(iii<iiistop){
+  aaa=iii;bbb=iii+1;
+  setvars,table=squeezetab;
+  exec,sq_savebound(ir5,$aaa,$bbb);
+  ttt=0;   exec,sq_savestep_all(ir5,$aaa,$bbb,$ttt);
+  exec,sq_saverrtable_all(ir5);
+  ttt=10;  exec,sq_savestep_all(ir5,$aaa,$bbb,$ttt);
+  exec,sq_saverrtable_all(ir5);
+  ttt=40;  exec,sq_savestep_all(ir5,$aaa,$bbb,$ttt);
+  exec,sq_saverrtable_all(ir5);
+  ttt=50;  exec,sq_savestep_all(ir5,$aaa,$bbb,$ttt);
+  exec,sq_saverrtable_all(ir5);
+  ttt=60;  exec,sq_savestep_all(ir5,$aaa,$bbb,$ttt);
+  exec,sq_saverrtable_all(ir5);
+  ttt=90;  exec,sq_savestep_all(ir5,$aaa,$bbb,$ttt);
+  exec,sq_saverrtable_all(ir5);
+  iii=iii+1;
+};
+ttt=100;  exec,sq_savestep(ir5,$aaa,$bbb,$ttt);exec,sq_saverrtable(ir5);
+};
+
