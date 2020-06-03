@@ -1,0 +1,76 @@
+scale := 23348.89927;
+scmin:= 0.03*7000./nrj;
+qtlimitx28 := 1.0*225.0/scale;
+qtlimitx15 := 1.0*205.0/scale;
+qtlimitqtx15:= 0.06*205.0/scale; !trim at Q1
+qtlimit2 := 1.0*160.0/scale;
+qtlimit3 := 1.0*200.0/scale;
+qtlimit4 := 1.0*125.0/scale;
+qtlimit5 := 1.0*120.0/scale;
+qtlimit6 := 1.0*90.0/scale;
+
+exec,select(5,45,56,b2);
+  KQX.R5:=-KQX.L5;KTQX1.R5:=-KTQX1.L5;KTQX2.R5:=-KTQX2.L5;
+!  KQ4.R5B2 :=  -KQ4.L5B2;
+!  KQ5.R5B2 :=  -KQ5.L5B2;
+
+use,period=lhcb2,range=s.ds.l5.b2/e.ds.r5.b2 ;
+
+match,  sequence=lhcb2,beta0 = bir5b2,mux=0,muy=0;
+  constraint,sequence=lhcb2,range=IP5,dx=0.0,dpx=0.0;
+  constraint,sequence=lhcb2,range=IP5,alfx=0,alfy=0;
+  constraint,sequence=lhcb2,range=IP5,betx=betxip5b1,bety=betxip5b1;
+  constraint,sequence=lhcb2,range=e.ds.r5.b2,alfx=eir5b2->alfx,alfy=eir5b2->alfy;
+  constraint,sequence=lhcb2,range=e.ds.r5.b2,dx=eir5b2->dx,dpx=eir5b2->dpx;
+  constraint,sequence=lhcb2,range=e.ds.r5.b2,betx=eir5b2->betx,bety=eir5b2->bety;
+  constraint,sequence=lhcb2,range=e.ds.r5.b2,mux=muxip5b2,muy=muyip5b2;
+
+!    vary,name=KQX.L5     ,step=1.0e-6,LOWER=-qtlimitx15,UPPER=-qtlimitx15*scmin;
+!    vary,name=KTQX1.L5   ,step=1.0e-6,LOWER=-qtlimitqtx15,UPPER= qtlimitqtx15;
+    vary,name=KQ4.L5b2   ,step=1.0e-6,UPPER=-qtlimit2*scmin,LOWER=-qtlimit2;
+    vary,name=KQ5.L5b2   ,step=1.0e-6,UPPER= qtlimit2,LOWER= qtlimit2*scmin;
+    vary,name=KQ6.L5b2   ,step=1.0e-6,UPPER=-qtlimit2*scmin,LOWER=-qtlimit2;
+    vary,name=KQ7.L5b2   ,step=1.0e-6,UPPER= qtlimit3,LOWER= qtlimit3*scmin;
+    vary,name=KQ8.L5b2   ,step=1.0e-6,UPPER=-qtlimit3*scmin,LOWER=-qtlimit3;
+    vary,name=KQ9.L5b2   ,step=1.0e-6,UPPER= qtlimit3,LOWER= qtlimit3*scmin;
+    vary,name=KQ10.L5b2  ,step=1.0e-6,UPPER=-qtlimit3*scmin,LOWER=-qtlimit3;
+
+!   vary,name=KQ4.R5b2   ,step=1.0e-6,UPPER= qtlimit2,LOWER= qtlimit2*scmin;
+!   vary,name=KQ5.R5b2   ,step=1.0e-6,UPPER=-qtlimit2*scmin,LOWER=-qtlimit2;
+    vary,name=KQ6.R5b2   ,step=1.0e-6,UPPER= qtlimit2,LOWER= qtlimit2*scmin;
+    vary,name=KQ7.R5b2   ,step=1.0e-6,UPPER=-qtlimit3*scmin,LOWER=-qtlimit3;
+    vary,name=KQ8.R5b2   ,step=1.0e-6,UPPER= qtlimit3,LOWER= qtlimit3*scmin;
+    vary,name=KQ9.R5b2   ,step=1.0e-6,UPPER=-qtlimit3*scmin,LOWER=-qtlimit3;
+    vary,name=KQ10.R5b2  ,step=1.0e-6,UPPER= qtlimit3,LOWER= qtlimit3*scmin;
+
+    vary,name=KQTL11.L5b2,step=1.0e-6,LOWER=-qtlimit4,UPPER=qtlimit4;
+    vary,name=KQT12.L5b2 ,step=1.0e-6,LOWER=-qtlimit5,UPPER=qtlimit5;
+    vary,name=KQT13.L5b2 ,step=1.0e-6,LOWER=-qtlimit5,UPPER=qtlimit5;
+    vary,name=KQTL11.R5b2,step=1.0e-6,LOWER=-qtlimit4,UPPER=qtlimit4;
+    vary,name=KQT12.R5b2 ,step=1.0e-6,LOWER=-qtlimit5,UPPER=qtlimit5;
+   vary,name=KQT13.R5b2 ,step=1.0e-6,LOWER=-qtlimit5,UPPER=qtlimit5;
+
+jacobian,calls=jac_calls,tolerance=1.0e-21;
+endmatch;
+
+
+KQ4.R5B2=KQ4.R5B2;
+KQ5.R5B2=KQ5.R5B2;
+KQ6.R5B2=KQ6.R5B2;
+
+
+KQX.L1=KQX.L5;KTQX1.L1=KTQX1.L5;KTQX2.L1=KTQX2.L5;
+KQX.R1:=-KQX.L1;KTQX1.R1:=-KTQX1.L1;KTQX2.R1:=-KTQX2.L1;
+KQ4.L1b2=KQ4.L5b2;KQ4.R1b2=KQ4.R5b2;
+KQ5.L1b2=KQ5.L5b2;KQ5.R1b2=KQ5.R5b2;
+KQ6.L1b2=KQ6.L5b2;KQ6.R1b2=KQ6.R5b2;
+KQ7.L1b2=KQ7.L5b2;KQ7.R1b2=KQ7.R5b2;
+KQ8.L1b2=KQ8.L5b2;KQ8.R1b2=KQ8.R5b2;
+KQ9.L1b2=KQ9.L5b2;KQ9.R1b2=KQ9.R5b2;
+KQ10.L1b2=KQ10.L5b2;KQ10.R1b2=KQ10.R5b2;
+KQTL11.L1b2=KQTL11.L5b2;KQTL11.R1b2=KQTL11.R5b2;
+KQT12.L1b2=KQT12.L5b2;KQT12.R1b2=KQT12.R5b2;
+KQT13.L1b2=KQT13.L5b2;KQT13.R1b2=KQT13.R5b2;
+
+tarir5b2=tar;
+

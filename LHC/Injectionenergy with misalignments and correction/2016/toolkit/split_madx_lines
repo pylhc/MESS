@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for i in $*
+do
+echo $i
+sed  -i 's/; /;\n/g' $i
+sed  -i 's/;\(.\)/;\n\1/g' $i
+done
+
+

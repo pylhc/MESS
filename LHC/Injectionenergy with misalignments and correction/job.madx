@@ -254,7 +254,7 @@ call,file="2016/errors/macro_error.madx";  ! some macros for error generation
 !###################################################################################################################################
 !################################ ALIGNMENT ERRORS #################################################################################
 !###################################################################################################################################
-readtable, file="scripts/2016_geo_no_uncertainty/LHC-egeoc-0001-b1.tfs";
+readtable, file="scripts/LHC-egeoc-0001-b1.tfs";
 
 !################################ CALL AND USE NEW MACROS OF PER HAGEN ##################
 call, file="scripts/Ealign_Subroutines.madx";
@@ -360,11 +360,9 @@ ON_LSF:=1;             ! to be set to 0 if run is performed on BOINC. ! double c
 ! and call the corresponding measured error table for nominal LHC magnets
 !++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !For the madx file
-// eoption,seed=1;
-// if (NRJ==450) {readtable, file="wise/After_sector_3-4_repair/injection/injection_errors-emfqcs-1.tfs" ;}
-// if (NRJ==6500){stop;}
-eoption,seed=%SEEDRAN;
-if (NRJ==450) {readtable, file="After_sector_3-4_repair/injection/injection_errors-emfqcs-1.tfs" ;}
+
+eoption,seed=1;
+if (NRJ==450) {readtable, file="injection_errors-emfqcs-1.tfs" ;}
 if (NRJ==6500){stop;}
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
