@@ -1,11 +1,11 @@
-! overall length of the test lattice
+! Overall length of the test lattice
 circum = 260;
 
-! fodo cell length
+! FODO cell length
 lcell = 20;
 
-! strength of the focussing and defocussing quadrupoles
-! cell phase advance is 0.25
+! Strength of the focussing and defocussing quadrupoles
+! Cell phase advance is 0.25
 f = lcell / sin(pi/4) / 4;
 kf = 1.0 / f;
 kd = -1.0 / f;
@@ -27,24 +27,24 @@ dkd = 0;
 kofx = 0;
 kodx = 0;
 
-! detuning of phase adjust cell
+! Detuning of phase adjust cell
 dphix = +0.03;
 dphiy = +0.06;
 
 beam;
 
-! element definitions
+! Element definitions
 qf: multipole, knl:={0, kf};
 qd: multipole, knl:={0, kd};
 
-! quadrupole with possible field errors
+! Quadrupole with possible field errors
 qfk: multipole, knl:={0, kf + dkf};
 qdk: multipole, knl:={0, kd - dkd};
 
 qfx: multipole, knl:={0, kfx, 0, 0};
 qdx: multipole, knl:={0, kdx, 0, 0};
 
-! thin octupole
+! Thin octupole
 osx: multipole, knl:={0, 0, 0, kofx};
 
 qfp1: multipole, knl:={0, kf1};
@@ -54,9 +54,9 @@ qdp2: multipole, knl:={0, kd2};
 qfp3: multipole, knl:={0, kf3};
 qdp3: multipole, knl:={0, kd3};
 
-! set up matrix element
-! madx initializes variables with zero whereas uninitilaized parameter for matrix are set to identity transform
-! thus R values should be properly set before twiss is called
+! Set up matrix element
+! MAD-X initializes variables with zero whereas uninitialized parameters for matrix are set to identity transform
+! Thus R values should be properly set before twiss is called
 trombone: matrix, rm11 := r11,
                   rm12 := r12,
                   rm16 := r16,
@@ -74,14 +74,14 @@ trombone: matrix, rm11 := r11,
 
 
 
-! skew quadrupoles
+! Skew quadrupoles
 sq1:  multipole, ksl := {0, ska};
 sq2: multipole, ksl := {0, skc};
 
 sq3:  multipole, ksl := {0, skb};
 sq4: multipole, ksl := {0, skd};
 
-! define basic fodo cell
+! Define basic FODO cell
 cell: sequence, refer=center, l=lcell;
     smark: marker, at=0.;
     qf:qf, at=0.25*lcell;
@@ -89,7 +89,7 @@ cell: sequence, refer=center, l=lcell;
     smend: marker, at=lcell;
 endsequence;
 
-! define phase adjust cell
+! Define phase adjust cell
 phaseshiftcell: sequence, refer=center, l=3*lcell;
     qfp1: qfp1, at=0.25*lcell;
     qdp1: qdp1, at=0.75*lcell;
@@ -99,7 +99,7 @@ phaseshiftcell: sequence, refer=center, l=3*lcell;
     qdp3: qdp3, at=2.75*lcell;
 endsequence;
 
-! define overall cell
+! Define overall cell
 seq: sequence, refer=center, l=circum;
 startark: marker, at=0;
 qf1:qf, at=0.25*lcell;
@@ -134,7 +134,7 @@ endsequence;
 
 use, sequence=cell;
 
-! match cell to phase advance of 0.25 in both planes
+! Match cell to phase advance of 0.25 in both planes
 match, sequence=cell;
     VARY, NAME=kf, LOWER=-1E22, UPPER=1E22;
     VARY, NAME=kd, LOWER=-1E22, UPPER=1E22;
@@ -143,7 +143,7 @@ match, sequence=cell;
     LMDIF, CALLS=5000, TOLERANCE=1E-14;
 endmatch;
 
-! save optics fct for setting phase trombone
+! Save optics functions for setting phase trombone
 twiss;
 betxend = table(twiss, smend, betx);
 betyend = table(twiss, smend, bety);
@@ -157,7 +157,7 @@ value, betyend;
 value, alfxend;
 value, alfyend;
 
-! set trombone values
+! Set trombone values
 r11 := cos(twopi * dphix) + alfxend * sin(twopi * dphix);
 r12 := betxend * sin(twopi * dphix);
 r22 := cos(twopi * dphix) - alfxend * sin(twopi * dphix);
@@ -175,4 +175,5 @@ beam;
 use, sequence=seq;
 select, flag=twiss, clear;
 twiss, file="twiss.tfs", RIPKEN=TRUE, centre;
-! good to go
+
+! Good to go
