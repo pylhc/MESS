@@ -1,0 +1,836 @@
+System, "rm -r temp";
+System, "rm -r output";
+System, "mkdir temp";
+System, "mkdir output";
+
+
+!#############################################################################
+!############################ Tune and Chromaticity ##########################
+!#############################################################################
+
+qx0 = 62.26;
+qy0 = 60.32;
+
+tsplit=  2.0;
+qx00 = 62.0;
+qy00 = 60.0;
+qprime = 3.0;
+
+qxinit = qx0;
+qyinit = qy0;
+qxfinal = 62.28; ! Define initial qxinit/qyinit with larger separation for robustness to large coupling errors as sources are introduced (want to avoid getting stuck on the wrong side of qx=qy)
+qyfinal = 60.31; ! Then rematch to desired final tunes at the very end of the script. qx0 etc are kept with the init values for coupling routines etc.
+
+ptcqxinit = qxinit - qx00;
+ptcqyinit = qyinit - qy00;
+qxinitint = qxinit - ptcqxinit;
+qyinitint = qyinit - ptcqyinit;
+dqxinit = qprime;
+dqyinit = qprime;
+
+! Value of the linear couopling knobs to be applied at the end of the mask
+couplre = 0.002;
+couplim = 0.000;
+
+
+!#############################################################################
+!################################ Options ####################################
+!#############################################################################
+
+mylhcbeam=1;  ! Always set to one as this script is only adapted for Beam 1 2018
+is_thin=1;
+
+MOpowering = 0.0;
+targetorbit = 1;  ! Flag to match oorbit using virtual correctors - in practice need this if using any alignment errors
+zeroorbit = 1;  ! Flag to match orbit to zero instead of a target file
+orbittol = 1e-9;  ! Tolerance on orbit matching: something small (e.g. 1e-9) is decent for matching to zero or to target. Can increase if want to have qualitative reproduction of RMS using old routines.
+
+
+!#############################################################################
+!############################# Setting Up Lattice ############################
+!#############################################################################
+
+call, file="lhc_as-built.seq";
+
+if(is_thin==1) {
+    slicefactor = 8;
+    beam;
+	call, file="myslice.madx";
+	beam;
+	use, sequence=lhcb1; makethin, sequence=lhcb1, style=teapot, makedipedge=true;
+	use, sequence=lhcb2; makethin, sequence=lhcb2, style=teapot, makedipedge=true;
+};
+
+! Stuff for orbit correction
+if(targetorbit==1){
+    call, file="scripts/install.vcs.2015.madx";
+};
+
+readmytable, file="scripts/target.orbit.B1-2016.new.tfs", table=my_target;
+
+USE, SEQUENCE=lhcb1;
+call, file="scripts/target.orbit.B1-2016.madx";			       
+
+! Cycling w.r.t. to IP3 (mandatory to find closed orbit in collision in the presence of errors)
+seqedit, sequence=lhcb1; flatten; cycle, start=IP3; endedit;
+
+if(is_thin==0){ call, file="opticsfile.1"; }
+else          { call, file="opticsfile.1"; }
+
+NRJ = 450;
+thisemit := 3.75e-6 / (NRJ / 0.938);
+
+value, NRJ;
+value, thisemit;
+
+beam, sequence=lhcb1, bv=1, energy=NRJ, particle=proton, npart=1.0e10, kbunch=1, ex=thisemit, ey=thisemit;
+Use, sequence=lhcb1;
+
+
+!###################################################################################################################################
+!############################## SET UP LANDAU OCTUPOLES ############################################################################
+!###################################################################################################################################
+I_MO = 0. ; 
+brho:=NRJ*1e9/clight;
+MOpowering=Kmax_MO*I_MO/Imax_MO/brho; 
+MOFpowering=MOpowering;
+MODpowering=MOpowering;
+
+		! The setting of MO powering will be applied to all MO later in the script, then ROD.A56.B1 is rescaled according to the knob
+		! NOTE THAT ROD.A56.B1 IS HARWARE LIMITED TO A WEAKER VALUE THAN ALL OTHER CIRCUITS. So Runii does not have uniform powering of all MO.
+		! DO NOT COMPARE TO THE KMAX AS DEFINED IN CORR_VALUE. THE DEFINITION OF MAX FIELD STRENGTH DOESN'T AGREE WITH THE FIDEL DOCUMENTATION. VALUE OF KMAX FROM SCRIPT INCLUDED HERE IS ONLY A TINY DIFFERENCE FROM FIDEL MEASUREMENTS.
+
+!###################################################################################################################################
+!############################## SANITY CHECKS ######################################################################################
+!###################################################################################################################################
+value, MOpowering;
+value, qxinit,qyinit;
+value, ptcqxinit,ptcqyinit;
+value, qxinitint,qyinitint;
+value, dqxinit,dqyinit;
+
+!###################################################################################################################################
+!############################## Go to nominal tunes for nominal twiss ##############################################################
+!###################################################################################################################################
+
+
+   match;
+     global, q1=qxfinal, q2=qyfinal;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+
+!###################################################################################################################################
+!############################## Nominal Twiss before any errors are applied ########################################################
+!###################################################################################################################################
+
+TWISS, CHROM, FILE = 'twiss_nominal.tfs', RANGE = '#S/#E';
+
+
+!###################################################################################################################################
+!############################## Get tunes right before error application ###########################################################
+!###################################################################################################################################
+
+
+   match;
+     global, q1=qxinit, q2=qyinit;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+
+!###################################################################################################################################
+!################################ SETUP FOR ORBIT and ERROR CORRECTIONS ############################################################
+!################################ XING SCHEME SHOULD BE DISABLED AT START TO SIMPLIFY INCLUSION OF ERRORS/ALIGNMENTS/ORBIT
+!###################################################################################################################################
+on_x1= 0    ; on_sep1= 0 ; on_o1= 0 ;
+on_x2= 0    ; on_sep2= 0 ; on_o2= 0 ; on_oe2=0; on_a2= 0 ;                                       
+on_x5= 0    ; on_sep5= 0 ; on_o5= 0 ;
+on_x8= 0    ; on_sep8= 0 ; on_o8= 0 ; on_a8= 0 ;  on_sep8h= 0 ; on_x8v= 0 ;   
+
+on_alice= 0 ;  
+on_sol_alice=0;                                                                    
+on_lhcb = 0 ;  
+on_sol_atlas=0;
+on_sol_cms=0;
+
+Use, sequence=lhcb1;
+select, flag=twiss,clear;
+select, flag=twiss, pattern="IP1",   column=name,s,betx,bety,alfx,alfy,dx,dpx,mux,muy;
+select, flag=twiss, pattern="IP2",   column=name,s,betx,bety,alfx,alfy,dx,dpx,mux,muy;
+select, flag=twiss, pattern="IP5",   column=name,s,betx,bety,alfx,alfy,dx,dpx,mux,muy;
+select, flag=twiss, pattern="IP8",   column=name,s,betx,bety,alfx,alfy,dx,dpx,mux,muy;
+twiss,sequence=lhcb1,file=twiss.b1;system,"cat twiss.b1";
+
+Use, sequence=lhcb1;
+
+
+! print nominal optics parameter at the MB, MQS and MSS for
+! b2, b3, b4, b5, a2 and a3 correction
+ select, flag=twiss, clear;
+ select, flag=twiss,pattern=MB\.   ,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MBH\.   ,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.14,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.15,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.16,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.17,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.18,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.19,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.20,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,pattern=MQT\.21,class=multipole,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,class=MQS                      ,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,class=MSS                      ,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,class=MCO                      ,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,class=MCD                      ,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ select, flag=twiss,class=MCS                      ,column=name,k0L,k1L,betx,bety,dx,mux,muy;
+ twiss,  file='temp/optics0_MB.mad';
+
+! print nominal optics parameter at the D1, MQX and triplet corrector
+! for triplet correction
+ select, flag=twiss, clear;
+ select, flag=twiss, pattern=MQX  , class=multipole, column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MBX  , class=multipole, column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MBRC , class=multipole, column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MQSX                  , column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MCSX                  , column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MCTX                  , column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MCOSX                 , column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MCOX                  , column=name,betx,bety,x,y;
+ select, flag=twiss, pattern=MCSSX                 , column=name,betx,bety,x,y;
+ twiss,  file='temp/optics0_inser.mad';
+
+select,flag=twiss,clear;
+if(mylhcbeam==1) {twiss,sequence=lhcb1,table=nominal; };
+if(mylhcbeam>1)  {twiss,sequence=lhcb2,table=nominal; };
+beta.ip1=table(twiss,IP1,betx);
+
+select, flag=twiss, clear;
+twiss, table=zero_orbit;
+
+ select, flag=twiss, clear;
+ select, flag=twiss,pattern=MB,column=name,s,betx,bety,x,y;
+ select, flag=twiss,pattern=MQ,column=name,s,betx,bety,x,y;
+ select, flag=twiss,pattern=ip,column=name,s,betx,bety,x,y;
+ select, flag=twiss,pattern=BPM,column=name,s,betx,bety,x,y;
+twiss,chrom,file=twiss.nominal.dat;
+
+ select, flag=twiss, clear;
+ select, flag=twiss,column=name,s,betx,bety,x,y;
+twiss,chrom,file=output/twiss.elements.nominal.dat;
+
+
+!###################################################################################################################################
+!################################ CALL ERROR SUBROUTINES ###########################################################################
+!###################################################################################################################################
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!         Call error subroutines (nominal machine and new IT/D1)
+!                         and error tables
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+! Error routine and measured error table for nominal LHC
+call,file="2016/measured_errors/Msubroutines_new.madx";  ! think the new subroutines are only relevant for MSS - not used pre-2017 so shouldn't make a difference compared to old Msubroutines...
+call,file="2016/measured_errors/Msubroutines_MS_MSS_MO_new.madx";
+call,file="2016/toolkit/Orbit_Routines.madx";
+call,file="2016/toolkit/SelectLHCMonCor.madx";
+readtable, file="2016/measured_errors/rotations_Q2_integral.tab";
+call,file="2016/errors/macro_error.madx";  ! some macros for error generation
+
+
+!###################################################################################################################################
+!################################ ALIGN SEPARATION MAGNETS  ########################################################################
+!###################################################################################################################################
+
+ call, file = "2016/measured_errors/align_D1_slices.b1.madx";
+ call, file = "2016/measured_errors/align_D2_slices.b1.madx";
+ call, file = "2016/measured_errors/align_D3_slices.b1.madx";
+ call, file = "2016/measured_errors/align_D4_slices.b1.madx";
+
+!###################################################################################################################################
+!################################ ALIGNMENT ERRORS #################################################################################
+!###################################################################################################################################
+readtable, file="scripts/LHC-egeoc-0001-b1.tfs";
+
+!################################ CALL AND USE NEW MACROS OF PER HAGEN ##################
+call, file="scripts/Ealign_Subroutines.madx";
+exec, Ealign_C_All;
+!########### TABLE OF ERRORS ######################
+select, flag=error, clear;
+  select, flag=error, pattern=^M;
+  esave,  file="temp/alignment_errors.m.tfs";
+select, flag=error, clear;
+  select, flag=error, pattern=^BPM;
+  esave,  file="temp/alignment_errors.bpm.tfs";
+select, flag=error, clear;
+  select, flag=error, pattern=^MB\.;
+  esave,  file="temp/alignment_errors.mb.tfs";
+select, flag=error, clear;
+  select, flag=error, pattern=^MQX;
+  esave,  file="temp/alignment_errors.mqx.tfs";
+!###################################################################################################################################
+!################################ ORBIT/COUPLING/TUNE MATCHING   ############################################
+!###################################################################################################################################
+if (zeroorbit==0){ call, file="scripts/call.orbitcorrection_target.madx";};
+if (zeroorbit==1){ call, file="scripts/call.orbitcorrection_zero.madx";};
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                   fine tuning of coupling                     
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+call,   file="scripts/FineTuneCoupling_b1.madx";
+
+   match;
+     global, q1=qxinit, q2=qyinit;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;   
+!###################################################################################################################################
+!################################ SAVE TUNE AND COUPLING KNOBS TO RESTORE AFTER CORRECTION   #######################################
+!###################################################################################################################################
+
+KQTF.A81B1_old  = KQTF.A81B1 ; 
+KQTF.A12B1_old  = KQTF.A12B1 ; 
+KQTF.A45B1_old  = KQTF.A45B1 ; 
+KQTF.A56B1_old  = KQTF.A56B1 ; 
+KQTD.A81B1_old  = KQTD.A81B1 ; 
+KQTD.A12B1_old  = KQTD.A12B1 ; 
+KQTD.A45B1_old  = KQTD.A45B1 ; 
+KQTD.A56B1_old  = KQTD.A56B1 ; 
+KQTF.A78B1_old  = KQTF.A78B1 ; 
+KQTF.A23B1_old  = KQTF.A23B1 ; 
+KQTF.A34B1_old  = KQTF.A34B1 ; 
+KQTF.A67B1_old  = KQTF.A67B1 ; 
+KQTD.A78B1_old  = KQTD.A78B1 ; 
+KQTD.A23B1_old  = KQTD.A23B1 ; 
+KQTD.A34B1_old  = KQTD.A34B1 ; 
+KQTD.A67B1_old  = KQTD.A67B1 ; 
+
+KQS.R1B1_old   =  KQS.R1B1 ;
+KQS.L2B1_old   =  KQS.L2B1 ;
+KQS.A23B1_old  =  KQS.A23B1;
+KQS.R3B1_old   =  KQS.R3B1 ;
+KQS.L4B1_old   =  KQS.L4B1 ;
+KQS.A45B1_old  =  KQS.A45B1;
+KQS.R5B1_old   =  KQS.R5B1 ;
+KQS.L6B1_old   =  KQS.L6B1 ;
+KQS.A67B1_old  =  KQS.A67B1;
+KQS.R7B1_old   =  KQS.R7B1 ;
+KQS.L8B1_old   =  KQS.L8B1 ;
+KQS.A81B1_old  =  KQS.A81B1;
+
+
+!###################################################################################################################################
+!################################ APPLY THE MAGNETIC ERRORS ########################################################################
+!################################ WE'RE NOT APPLYING ANY QUAD OR COUPLING ERRORS. IN GENERAL ALIGNMENTS + SEXTUPOLES WILL CREATE A FAIRLY REALISTIC rms DB/B AND LOCAL F1001 VARIATION.
+!###################################################################################################################################
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                Switch ON/OFF some multipole
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+exec ON_ALL_MULT;
+ON_LSF:=1;             ! to be set to 0 if run is performed on BOINC. ! double check if this is still true - and if wise actually includes any of these errors
+
+ ON_A1s  =  0 ; ON_A1r  =  0 ; ON_B1s  =  0 ; ON_B1r  =  0 ;
+ ON_A2s  =  0 ; ON_A2r  =  0 ; ON_B2s  =  0 ; ON_B2r  =  0 ;
+ ON_A3s  =  1 ; ON_A3r  =  1 ; ON_B3s  =  1 ; ON_B3r  =  1 ;
+ ON_A4s  =  1 ; ON_A4r  =  1 ; ON_B4s  =  1 ; ON_B4r  =  1 ;
+ ON_A5s  =  1 ; ON_A5r  =  1 ; ON_B5s  =  1 ; ON_B5r  =  1 ;
+ ON_A6s  =  1 ; ON_A6r  =  1 ; ON_B6s  =  1 ; ON_B6r  =  1 ;
+ ON_A7s  =  1 ; ON_A7r  =  1 ; ON_B7s  =  1 ; ON_B7r  =  1 ;
+ ON_A8s  =  1 ; ON_A8r  =  1 ; ON_B8s  =  1 ; ON_B8r  =  1 ;
+ ON_A9s  =  1 ; ON_A9r  =  1 ; ON_B9s  =  1 ; ON_B9r  =  1 ;
+ ON_A10s =  1 ; ON_A10r =  1 ; ON_B10s =  1 ; ON_B10r =  1 ;
+ ON_A11s =  1 ; ON_A11r =  1 ; ON_B11s =  1 ; ON_B11r =  1 ;
+ ON_A12s =  ON_LSF; ON_A12r = ON_LSF; ON_B12s = ON_LSF; ON_B12r =  ON_LSF;
+ ON_A13s =  ON_LSF; ON_A13r = ON_LSF; ON_B13s = ON_LSF; ON_B13r =  ON_LSF;
+ ON_A14s =  ON_LSF; ON_A14r = ON_LSF; ON_B14s = ON_LSF; ON_B14r =  ON_LSF;
+ ON_A15s =  ON_LSF; ON_A15r = ON_LSF; ON_B15s = ON_LSF; ON_B15r =  ON_LSF;
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+! Define the seed number (for statistical error assignment in the new IT/D1)
+! and call the corresponding measured error table for nominal LHC magnets
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!For the madx file
+
+eoption,seed=1;
+if (NRJ==450) {readtable, file="injection_errors-emfqcs-1.tfs" ;}
+if (NRJ==6500){stop;}
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!             apply field errors to MB and MQ magnets
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ call,   file="2016/measured_errors/Efcomp_MB.madx"  ;
+ call,   file="2016/measured_errors/Efcomp_MQ.madx"  ;
+
+!!!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!!!           apply field errors to all other quads and dipoles
+!!!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!!! Nominal LHC magnets
+ call,   file="2016/measured_errors/Efcomp_MBRB.madx"; ! for IP4
+ call,   file="2016/measured_errors/Efcomp_MBRS.madx"; ! for IP4
+ call,   file="2016/measured_errors/Efcomp_MBRC.madx"; ! this is the D2 
+ call,   file="2016/measured_errors/Efcomp_MBX.madx" ; ! D in IP2 and 8
+ call,   file="2016/measured_errors/Efcomp_MBW.madx" ; ! this is for IP7 and IP3
+ call,   file="2016/measured_errors/Efcomp_MBXW.madx"; ! this is the D1 in IP1 and IP5
+!
+ call,   file="2016/measured_errors/Efcomp_MQM.madx" ;
+ call,   file="2016/measured_errors/Efcomp_MQMC.madx";
+ call,   file="2016/measured_errors/Efcomp_MQML.madx";
+ call,   file="2016/measured_errors/Efcomp_MQTL.madx";
+ call,   file="2016/measured_errors/Efcomp_MQW.madx" ;
+ call,   file="2016/measured_errors/Efcomp_MQY.madx" ;
+ call,   file="2016/measured_errors/Efcomp_MQX.madx" ; 
+
+
+!##############################################################################
+!########## GET NOMINAL CORRECTIONS FOR DIPOLES & TRIPLETS ETC ################
+!########## DON'T CARE SO MUCH ABOUT THE SPECIFIC SPOOL PIECE SCHEME SINCE WE WILL TURN OFF OR REPLACE MOST OF THE CORRECTORS LATER IN THE SCRIPT
+!##############################################################################
+if(is_thin==1) { 
+	value,NRJ;
+       !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+       !               correction of field errors in MB (compatible with V6.503 & SLHC)
+       !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        !select, flag=error, clear;
+	!select, flag=error, pattern=MB\.,class=multipole;
+	!esave,  file="temp/MB.errors";
+	!system, "slhc/errors/corr_MB_phaseI";
+	!call, file="temp/MB_corr_setting.mad";
+	value, kcs.a12b1;
+	value, kcs.a78b1;
+	value, kcs.a12b2;
+  value, kcs.a78b2;
+	select, flag=error, clear;
+	select, flag=error, pattern=MB\.,class=multipole;
+	esave,  file="temp/MB.errors";
+	system, "2016/errors/corr_MB_v5"; 
+	call, file="temp/MB_corr_setting.mad";
+	value, kcs.a12b1;
+	value, kcs.a78b1;
+	value, kcs.a12b2;
+  value, kcs.a78b2;
+}
+!###################################################################################################################################
+!################################ REDEFINE KNOBS WHICH ARE CHANGED BY THE CORRECTION   ############################################
+!###################################################################################################################################
+
+dQx.b1      :=    0.000000000000E+00 ;
+dQy.b1      :=    0.000000000000E+00 ;
+dQx.b1_sq   :=    0.000000000000E+00 ;
+dQy.b1_sq   :=    0.000000000000E+00 ;
+
+KQTF.A81B1  :=  KQTF.A81B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTF.A12B1  :=  KQTF.A12B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTF.A45B1  :=  KQTF.A45B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTF.A56B1  :=  KQTF.A56B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTD.A81B1  :=  KQTD.A81B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTD.A12B1  :=  KQTD.A12B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTD.A45B1  :=  KQTD.A45B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTD.A56B1  :=  KQTD.A56B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + ( 0.000000000000E+00) * dQx.b1_sq + ( 0.000000000000E+00) * dQy.b1_sq  ;
+KQTF.A78B1  :=  KQTF.A78B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.724644665413E-02) * dQx.b1_sq + ( 0.132484451020E-02) * dQy.b1_sq  ;
+KQTF.A23B1  :=  KQTF.A23B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.724644665413E-02) * dQx.b1_sq + ( 0.132484451020E-02) * dQy.b1_sq  ;
+KQTF.A34B1  :=  KQTF.A34B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.724644665413E-02) * dQx.b1_sq + ( 0.132484451020E-02) * dQy.b1_sq  ;
+KQTF.A67B1  :=  KQTF.A67B1_old  + ( 0.386712697356E-02) * dQx.b1 + ( 0.714404818290E-03) * dQy.b1 + ( 0.724644665413E-02) * dQx.b1_sq + ( 0.132484451020E-02) * dQy.b1_sq  ;
+KQTD.A78B1  :=  KQTD.A78B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + (-0.134618584897E-02) * dQx.b1_sq + (-0.720260248926E-02) * dQy.b1_sq  ;
+KQTD.A23B1  :=  KQTD.A23B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + (-0.134618584897E-02) * dQx.b1_sq + (-0.720260248926E-02) * dQy.b1_sq  ;
+KQTD.A34B1  :=  KQTD.A34B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + (-0.134618584897E-02) * dQx.b1_sq + (-0.720260248926E-02) * dQy.b1_sq  ;
+KQTD.A67B1  :=  KQTD.A67B1_old  + (-0.675151714265E-03) * dQx.b1 + (-0.361436046931E-02) * dQy.b1 + (-0.134618584897E-02) * dQx.b1_sq + (-0.720260248926E-02) * dQy.b1_sq  ;
+
+CMRS.b1      :=   0.000000000000E+00 ;
+CMIS.b1      :=   0.000000000000E+00 ;
+CMRS.b1_sq   :=   0.000000000000E+00 ;
+CMIS.b1_sq   :=   0.000000000000E+00 ;
+ona2_b1      :=   0.000000000000E+00 ;
+
+KQS.R1B1    :=  KQS.R1B1_old  + (   0.000000000000E+00) * ona2_b1 + ( 0.266278479040E-01) * CMRS.b1 + (-0.899733288016E-02) * CMIS.b1 + ( 0.000000000000E+00) * CMRS.b1_sq + ( 0.000000000000E+00) * CMIS.b1_sq  ;
+KQS.L2B1    :=  KQS.L2B1_old  + (   0.000000000000E+00) * ona2_b1 + ( 0.266278479040E-01) * CMRS.b1 + (-0.899733288016E-02) * CMIS.b1 + ( 0.000000000000E+00) * CMRS.b1_sq + ( 0.000000000000E+00) * CMIS.b1_sq  ;
+KQS.A23B1   :=  KQS.A23B1_old + (   0.000000000000E+00) * ona2_b1 + ( 0.142516736842E-01) * CMRS.b1 + ( 0.848602983914E-02) * CMIS.b1 + ( 0.302173156154E-01) * CMRS.b1_sq + ( 0.109843179604E-01) * CMIS.b1_sq  ;
+KQS.R3B1    :=  KQS.R3B1_old  + (   0.000000000000E+00) * ona2_b1 + (-0.171205193764E-01) * CMRS.b1 + (-0.807870546221E-02) * CMIS.b1 + (-0.402300957758E-01) * CMRS.b1_sq + (-0.822964594698E-02) * CMIS.b1_sq  ;
+KQS.L4B1    :=  KQS.L4B1_old  + (   0.000000000000E+00) * ona2_b1 + (-0.171205193764E-01) * CMRS.b1 + (-0.807870546221E-02) * CMIS.b1 + (-0.402300957758E-01) * CMRS.b1_sq + (-0.822964594698E-02) * CMIS.b1_sq  ;
+KQS.A45B1   :=  KQS.A45B1_old + (   0.000000000000E+00) * ona2_b1 + ( 0.113812285983E-01) * CMRS.b1 + ( 0.955159460427E-02) * CMIS.b1 + ( 0.000000000000E+00) * CMRS.b1_sq + ( 0.000000000000E+00) * CMIS.b1_sq  ;
+KQS.R5B1    :=  KQS.R5B1_old  + (   0.000000000000E+00) * ona2_b1 + ( 0.792323136002E-02) * CMRS.b1 + ( 0.100926247998E-01) * CMIS.b1 + ( 0.000000000000E+00) * CMRS.b1_sq + ( 0.000000000000E+00) * CMIS.b1_sq  ;
+KQS.L6B1    :=  KQS.L6B1_old  + (   0.000000000000E+00) * ona2_b1 + ( 0.792323136002E-02) * CMRS.b1 + ( 0.100926247998E-01) * CMIS.b1 + ( 0.000000000000E+00) * CMRS.b1_sq + ( 0.000000000000E+00) * CMIS.b1_sq  ;
+KQS.A67B1   :=  KQS.A67B1_old + (   0.000000000000E+00) * ona2_b1 + (-0.158692136780E-01) * CMRS.b1 + ( 0.106460324212E-01) * CMIS.b1 + (-0.709778694350E-01) * CMRS.b1_sq + ( 0.349381515069E-01) * CMIS.b1_sq  ;
+KQS.R7B1    :=  KQS.R7B1_old  + (   0.000000000000E+00) * ona2_b1 + (-0.739140462540E-02) * CMRS.b1 + (-0.987710657697E-02) * CMIS.b1 + (-0.549901960504E-02) * CMRS.b1_sq + (-0.185504800255E-01) * CMIS.b1_sq  ;
+KQS.L8B1    :=  KQS.L8B1_old  + (   0.000000000000E+00) * ona2_b1 + (-0.739140462540E-02) * CMRS.b1 + (-0.987710657697E-02) * CMIS.b1 + (-0.549901960504E-02) * CMRS.b1_sq + (-0.185504800255E-01) * CMIS.b1_sq  ;
+KQS.A81B1   :=  KQS.A81B1_old + (   0.000000000000E+00) * ona2_b1 + ( 0.241324775639E-01) * CMRS.b1 + (-0.962582146500E-02) * CMIS.b1 + ( 0.000000000000E+00) * CMRS.b1_sq + ( 0.000000000000E+00) * CMIS.b1_sq  ;
+
+
+!###################################################################################################################################
+!################################ ORBIT/COUPLING/TUNE MATCHING   ############################################
+!###################################################################################################################################
+if (zeroorbit==0){ call, file="scripts/call.orbitcorrection_target.madx";};
+if (zeroorbit==1){ call, file="scripts/call.orbitcorrection_zero.madx";};
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                   fine tuning of coupling                     
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+call,   file="scripts/FineTuneCoupling_b1.madx";
+
+   match;
+     global, q1=qxinit, q2=qyinit;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+!###########################################################################################################################################################################################
+!!###############!! implement systematic missalignments of the MCDO indicated by NLchroma studies ! NOTE THAT SOURCE IS NOT DEFINITIVE!!!
+!!###############!! ADD THE SYSTEMATIC MISSALINGMENT OF THE MCS INDICATED BY COUPLING DECAY OBSERVATIONS
+!###########################################################################################################################################################################################
+
+ SELECT, FLAG=ERROR, CLEAR;
+ SELECT,FLAG=ERROR,CLASS=MCO;
+ EOPTION,ADD=TRUE;
+ EALIGN,DX:=-0.00020,DY:=0.000;
+ SELECT, FLAG=ERROR, CLEAR;
+ SELECT,FLAG=ERROR,CLASS=MCD;
+ EOPTION,ADD=TRUE;
+ EALIGN,DX:=-0.00020,DY:=0.000;
+
+ SELECT, FLAG=ERROR, CLEAR;
+ SELECT,FLAG=ERROR,CLASS=MCS;
+ EOPTION,ADD=TRUE;
+ EALIGN,DX:=0.0000,DY:=-0.0004;
+
+
+!###################################################################################################################################
+!################################ ORBIT/COUPLING/TUNE MATCHING   ############################################
+!###################################################################################################################################
+if (zeroorbit==0){ call, file="scripts/call.orbitcorrection_target.madx";};
+if (zeroorbit==1){ call, file="scripts/call.orbitcorrection_zero.madx";};
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                   fine tuning of coupling                     
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+call,   file="scripts/FineTuneCoupling_b1.madx";
+
+   match;
+     global, q1=qxinit, q2=qyinit;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+!##############################################################################
+!########## NO CHROMATIC COUPLING CORRECTIN 2016/2017/2018 INJ. ###############
+!##############################################################################
+  KSS.a12B1  =            0.0 ;
+  KSS.a23B1  =            0.0 ;
+  KSS.a34B1  =            0.0 ;
+  KSS.a45B1  =            0.0 ;
+  KSS.a56B1  =            0.0 ;
+  KSS.a67B1  =            0.0 ;
+  KSS.a78B1  =            0.0 ;
+  KSS.a81B1  =            0.0 ;
+
+
+  ptc_create_universe;
+  ptc_create_layout,model=3,method=6,nst=3,resplit,thin=0.0005,xbend=0.0005;
+  ptc_align;
+!  ptc_setswitch, fringe=True;
+  select_ptc_normal,  q1=0, q2=0;
+  select_ptc_normal, dq1=1,dq2=1;
+  select_ptc_normal, dq1=2,dq2=2;
+  select_ptc_normal, dq1=3,dq2=3;
+  select_ptc_normal, anhx=1,0,0; ! dQx/dex
+  select_ptc_normal, anhy=0,1,0; ! dQy/dey
+  select_ptc_normal, anhx=0,1,0;
+  select_ptc_normal, anhy=1,0,0;
+  select_ptc_normal, anhx=2,0,0; ! d2Qx/dex^2
+  select_ptc_normal, anhx=1,1,0;
+  select_ptc_normal, anhx=0,2,0;
+  select_ptc_normal, anhy=0,2,0; ! d2Qy/dey^2
+  select_ptc_normal, anhy=1,1,0; ! d2Qy/deydex
+  select_ptc_normal, anhy=2,0,0;
+  ptc_normal,closed_orbit,normal,icase=5,no=5;
+  write, table=normal_results,file="output/ptc_normal.final32.dat"; 
+  ptc_end;
+
+!##############################################################################
+!########## MCO not used at INJ in 2018                   #####################
+!##############################################################################
+KCO.a12B1  =  0.0 ;
+KCO.a23B1  =  0.0 ;
+KCO.a34B1  =  0.0 ;
+KCO.a45B1  =  0.0 ;
+KCO.a56B1  =  0.0 ;
+KCO.a67B1  =  0.0 ;
+KCO.a78B1  =  0.0 ;
+KCO.a81B1  =  0.0 ;
+
+!###########################################################################################################################################################################################
+!!###############!! APPLY THE MO
+!###########################################################################################################################################################################################
+
+ kof.a12b1 := MOFpowering;
+ kof.a23b1 := MOFpowering;
+ kof.a34b1 := MOFpowering;
+ kof.a45b1 := MOFpowering;
+ kof.a56b1 := MOFpowering;
+ kof.a67b1 := MOFpowering;
+ kof.a78b1 := MOFpowering;
+ kof.a81b1 := MOFpowering;
+
+ kod.a12b1 := MODpowering;
+ kod.a23b1 := MODpowering;
+ kod.a34b1 := MODpowering;
+ kod.a45b1 := MODpowering;
+ kod.a56b1 := MODpowering*0.775; !THIS MO IS HARDWARE LIMITED IN RUNii;
+ kod.a67b1 := MODpowering;
+ kod.a78b1 := MODpowering;
+ kod.a81b1 := MODpowering;
+
+
+
+  ptc_create_universe;
+  ptc_create_layout,model=3,method=6,nst=3,resplit,thin=0.0005,xbend=0.0005;
+  ptc_align;
+!  ptc_setswitch, fringe=True;
+  select_ptc_normal,  q1=0, q2=0;
+  select_ptc_normal, dq1=1,dq2=1;
+  select_ptc_normal, dq1=2,dq2=2;
+  select_ptc_normal, dq1=3,dq2=3;
+  select_ptc_normal, anhx=1,0,0; ! dQx/dex
+  select_ptc_normal, anhy=0,1,0; ! dQy/dey
+  select_ptc_normal, anhx=0,1,0;
+  select_ptc_normal, anhy=1,0,0;
+  select_ptc_normal, anhx=2,0,0; ! d2Qx/dex^2
+  select_ptc_normal, anhx=1,1,0;
+  select_ptc_normal, anhx=0,2,0;
+  select_ptc_normal, anhy=0,2,0; ! d2Qy/dey^2
+  select_ptc_normal, anhy=1,1,0; ! d2Qy/deydex
+  select_ptc_normal, anhy=2,0,0;
+  ptc_normal,closed_orbit,normal,icase=5,no=5;
+  write, table=normal_results,file="output/ptc_normal.final33.dat"; 
+  ptc_end;
+
+
+!###################################################################################################################################
+!################################ ORBIT/COUPLING/TUNE MATCHING   ############################################
+!###################################################################################################################################
+if (zeroorbit==0){ call, file="scripts/call.orbitcorrection_target.madx";};
+if (zeroorbit==1){ call, file="scripts/call.orbitcorrection_zero.madx";};
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                   fine tuning of coupling                     
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+call,   file="scripts/FineTuneCoupling_b1.madx";
+
+   match;
+     global, q1=qxinit, q2=qyinit;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+  ptc_create_universe;
+  ptc_create_layout,model=3,method=6,nst=3,resplit,thin=0.0005,xbend=0.0005;
+  ptc_align;
+!  ptc_setswitch, fringe=True;
+  select_ptc_normal,  q1=0, q2=0;
+  select_ptc_normal, dq1=1,dq2=1;
+  select_ptc_normal, dq1=2,dq2=2;
+  select_ptc_normal, dq1=3,dq2=3;
+  select_ptc_normal, anhx=1,0,0; ! dQx/dex
+  select_ptc_normal, anhy=0,1,0; ! dQy/dey
+  select_ptc_normal, anhx=0,1,0;
+  select_ptc_normal, anhy=1,0,0;
+  select_ptc_normal, anhx=2,0,0; ! d2Qx/dex^2
+  select_ptc_normal, anhx=1,1,0;
+  select_ptc_normal, anhx=0,2,0;
+  select_ptc_normal, anhy=0,2,0; ! d2Qy/dey^2
+  select_ptc_normal, anhy=1,1,0; ! d2Qy/deydex
+  select_ptc_normal, anhy=2,0,0;
+  ptc_normal,closed_orbit,normal,icase=5,no=5;
+  write, table=normal_results,file="output/ptc_normal.final5.dat"; 
+  ptc_end;
+
+!##################################################################################################################################
+!################################ APPLY THE XING SCHEME ############################################################
+!###################################################################################################################################
+// if(NRJ==450){
+//  on_x1= -170    ; on_sep1= -2.0 ; on_o1= 0 ;
+//  on_x2=  170    ; on_sep2=  3.5 ; on_o2= 0 ; on_oe2=0; on_a2= 0 ;                                       
+//  on_x5=  170    ; on_sep5=  2.0 ; on_o5= 0 ;                                                 
+//  on_x8= -170    ; on_sep8= -3.5 ; on_o8= 0 ; on_a8= 0 ;  on_sep8h= 0 ; on_x8v= 0 ;   
+// }
+// if(NRJ==6500){
+//  on_x1= -185.0    ; on_sep1= -0.55 ; on_o1= 0 ;
+//  on_x2=  200.0    ; on_sep2=  2.00 ; on_o2= 0 ; on_oe2=0; on_a2= 0 ;                                       
+//  on_x5=  185.0    ; on_sep5=  0.55 ; on_o5= 0 ;                                                 
+//  on_x8= -250.0    ; on_sep8= -1.00 ; on_o8= 0 ; on_a8= 0 ;  on_sep8h= 0 ; on_x8v= 0 ;   
+// }
+//  on_alice     = 7000.0/NRJ ; ! can change polarity for internal angles. Linked to sign of external xing. In previous years these were swapped for alice systematics, not sure about now.
+//  on_sol_alice = 7000.0/NRJ ;                                                                    
+//  on_lhcb      = 7000.0/NRJ ; ! can change polarity for internal angles. Linked to sign of external xing.
+//  on_sol_atlas = 7000.0/NRJ ;
+//  on_sol_cms   = 7000.0/NRJ ;
+
+
+//   ptc_create_universe;
+//   ptc_create_layout,model=3,method=6,nst=3,resplit,thin=0.0005,xbend=0.0005;
+//   ptc_align;
+// !  ptc_setswitch, fringe=True;
+//   select_ptc_normal,  q1=0, q2=0;
+//   select_ptc_normal, dq1=1,dq2=1;
+//   select_ptc_normal, dq1=2,dq2=2;
+//   select_ptc_normal, dq1=3,dq2=3;
+//   select_ptc_normal, anhx=1,0,0; ! dQx/dex
+//   select_ptc_normal, anhy=0,1,0; ! dQy/dey
+//   select_ptc_normal, anhx=0,1,0;
+//   select_ptc_normal, anhy=1,0,0;
+//   select_ptc_normal, anhx=2,0,0; ! d2Qx/dex^2
+//   select_ptc_normal, anhx=1,1,0;
+//   select_ptc_normal, anhx=0,2,0;
+//   select_ptc_normal, anhy=0,2,0; ! d2Qy/dey^2
+//   select_ptc_normal, anhy=1,1,0; ! d2Qy/deydex
+//   select_ptc_normal, anhy=2,0,0;
+//   ptc_normal,closed_orbit,normal,icase=5,no=5;
+//   write, table=normal_results,file="output/ptc_normal.final6.dat"; 
+//   ptc_end;
+
+
+!##################################################################################################################################
+!################################ REMATCH TUNE AND COUPLING POST XING APPLICATION #################################################
+!################################ 
+!############ STRICTLY AT THIS POINT WOULD BE BETTER TO CALL OWN MACRO FOR TUNE/CHROMA MATCHING BASED ON TWISS,CHROM; SINCE IT TENDS TO GIVE A BETTER MATCH of Q' IN PRESENCE OF LARGE COUPLING. SO TREAT FINAL TUNE/COUPLING MATCHING WITH CARE!
+!##################################################################################################################################
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                   fine tuning of coupling                     
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+call,   file="scripts/FineTuneCoupling_b1.madx";
+
+   match;
+     global, q1=qxinit, q2=qyinit;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!                   fine tuning of coupling                     
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+call,   file="scripts/FineTuneCoupling_b1.madx";
+
+
+CMRS.b1      =   CMRS.b1 + couplre ;
+CMIS.b1      =   CMIS.b1 + couplim ;
+
+   match;
+     global, q1=qxfinal, q2=qyfinal;
+     vary,   name=dQx.b1, step=1.0E-7 ;
+     vary,   name=dQy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;
+   match;
+     global, dq1=dqxinit, dq2=dqyinit;
+     vary,   name=dQpx.b1, step=1.0E-7 ;
+     vary,   name=dQpy.b1, step=1.0E-7 ;
+     lmdif,  calls=1000, tolerance=1.0E-21;
+   endmatch;  
+
+!###################################################################################################
+!########## FINAL TWISS AND PTC ####################################################################
+!###################################################################################################
+select, flag=twiss, clear;
+select, flag=twiss,column=name,s,betx,bety,x,y;
+twiss,chrom,file=output/twiss.elements.final.dat;
+
+  ptc_create_universe;
+  ptc_create_layout,model=3,method=6,nst=3,resplit,thin=0.0005,xbend=0.0005;
+  ptc_align;
+!  ptc_setswitch, fringe=True;
+  select_ptc_normal,  q1=0, q2=0;
+  select_ptc_normal, dq1=1,dq2=1;
+  select_ptc_normal, dq1=2,dq2=2;
+  select_ptc_normal, dq1=3,dq2=3;
+  select_ptc_normal, anhx=1,0,0; ! dQx/dex
+  select_ptc_normal, anhy=0,1,0; ! dQy/dey
+  select_ptc_normal, anhx=0,1,0;
+  select_ptc_normal, anhy=1,0,0;
+  select_ptc_normal, anhx=2,0,0; ! d2Qx/dex^2
+  select_ptc_normal, anhx=1,1,0;
+  select_ptc_normal, anhx=0,2,0;
+  select_ptc_normal, anhy=0,2,0; ! d2Qy/dey^2
+  select_ptc_normal, anhy=1,1,0; ! d2Qy/deydex
+  select_ptc_normal, anhy=2,0,0;
+  ptc_normal,closed_orbit,normal,icase=5,no=5;
+  write, table=normal_results,file="output/ptc_normal.final7.dat"; 
+  ptc_end;
+
+
+ select, flag=twiss, clear;
+ select, flag=twiss,column=name,s,betx,bety,x,y;
+twiss,chrom,file=output/twiss.elements.7.dat;
+
+
+!#########just some sanity checks
+call,   file="scripts/call.checkdqmin.madx";  ! assumes tunes are 0.28/0.31, if not change script
+value,  KCS.a78B1 ;
+value,  KCS.a78B2 ;
+value,  KCO.a78B1 ;
+value,  KCO.a78B2 ;
+value,  KCO.a45B1 ;
+value, MOpowering;
+
+
+!###################################################################################################
+!################################ PASS TO SIXTRACK #################################################
+!###################################################################################################
+
+SELECT, FLAG = TWISS, CLEAR;
+TWISS, CHROM, FILE = 'twiss_final.tfs', RANGE = '#S/#E';
+PLOT, HAXIS= S, VAXIS= BETX, BETY, RANGE= #S/#E, COLOUR= 100, NOVERSION=TRUE;
+PLOT, HAXIS= S, VAXIS= X, Y, RANGE= #S/#E, COLOUR= 100, NOVERSION=TRUE;
+PLOT, HAXIS= S, VAXIS= DX, DY, RANGE= #S/#E, COLOUR= 100, NOVERSION=TRUE;
+
+
+if (NRJ<4999.9999) {VRF400:=8. ;LAGRF400.B1=0.5;LAGRF400.B2=0.;};
+if (NRJ>5000.0000) {VRF400:=16.;LAGRF400.B1=0.5;LAGRF400.B2=0.;};
+twiss;
+
+ value, table(summ,q1);
+ value, table(summ,q2);
+ value, table(summ,dq1);
+ value, table(summ,dq2);
+ sixtrack,cavall, radius=0.017;

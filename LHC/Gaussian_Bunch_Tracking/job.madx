@@ -1,0 +1,74 @@
+!#############################################################################
+!############################# Setting Up Lattice ############################
+!#############################################################################
+
+call, file="lhc_as-built.seq";
+slicefactor = 8;
+beam;
+
+call, file="optics2018/toolkit/myslice.madx";
+beam;
+
+use, sequence=lhcb1; makethin, sequence=lhcb1, style=teapot, makedipedge=true;
+
+! Cycling w.r.t. to IP3 (mandatory to find closed orbit in collision in the presence of errors)
+seqedit, sequence=lhcb1; flatten; cycle, start=IP3; endedit;
+
+! Call injection optics
+call, file="opticsfile.1";
+
+beam, sequence=lhcb1, bv=1, energy=NRJ, particle=proton, npart=1.0e10, kbunch=1, ex=7.29767146889e-09, ey=7.29767146889e-09;
+Use, sequence=lhcb1;
+
+! Call twiss to get optics function with which beam is initalized
+SELECT, FLAG=TWISS, CLEAR;
+TWISS, RIPKEN=TRUE, centre;
+
+betxstart = table(twiss, ip3, betx);
+betystart = table(twiss, ip3, bety);
+alfxstart = table(twiss, ip3, alfx);
+alfystart = table(twiss, ip3, alfy);
+
+VALUE, betxstart;
+VALUE, betystart;
+VALUE, alfxstart;
+VALUE, alfystart;
+
+EOPTION, SEED=1;
+ptc_create_universe;
+ptc_create_layout, model=3, method=4, nst=3;
+
+! Loop initializing 9999 particles
+n = 1;
+while (n <= 9999) {
+	Nsigmax = tgauss(5);
+	Nsigmay = tgauss(5);
+	Nsigmapx = tgauss(5);
+	Nsigmapy = tgauss(5);
+	phasex = RANF() * 2 * PI;
+	phasey = RANF() * 2 * PI;
+	value, Nsigmax;
+	value, Nsigmay;
+
+	! Defines the used emittance
+	enomphysy = 1e-9;
+	enomphysx = 1e-9;
+	myx = sqrt(BETXSTART) * Nsigmax * sqrt(enomphysx);
+	myy = sqrt(BETYSTART) * Nsigmay * sqrt(enomphysy);
+	mypx= -1 * Nsigmax * sqrt(enomphysx) * (ALFXSTART) / SQRT(BETXSTART) + Nsigmapx *sqrt(enomphysx) / sqrt(BETXSTART);
+	mypy= -1 * Nsigmay * sqrt(enomphysy) * (ALFYSTART) / SQRT(BETYSTART) + Nsigmapy *sqrt(enomphysy) / sqrt(BETYSTART);
+	n=n+1;
+
+value, phasex;
+value, phasey;
+value, nsigmax;
+value, nsigmay;
+value, n;
+ptc_start, x=myx, px=mypx, y=myy, py=mypy;
+};
+ptc_observe, place=IP1;
+
+! In the next command, onetable is important as otherwise 9999 files would be written, which would make your filessystem unhappy :)
+ptc_track, icase=5, closed_orbit, turns=256, norm_no=5, element_by_element, recloss, maxaper={1000, 1000, 1000, 1000, 1000, 1000}, onetable=True;
+ptc_track_end;
+ptc_end;
