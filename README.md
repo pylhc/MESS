@@ -41,4 +41,4 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
 * **pyLHC/OMC-Team** - *Working Group* - [pyLHC](https://github.com/orgs/pylhc/teams/omc-team)
 
 ## License
-This project is licensed under the  License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
