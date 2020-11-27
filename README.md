@@ -32,13 +32,16 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
     - *Injectionenergy with misaligments and correction* - Realistic model of the LHC at injection energy with misaligments and nonlinear correction.
     - *Kmod simulation* - Simulating K-Modulation in one Q1 quadrupole.
     - *Tracking with ACD* - Setup for AC-dipole in LHC and subsequent tracking
-- *FODO Testlattice* - Small FODO lattice for benchmarking theories and scripts.
-    - *Lattice setup* - Setting up basic lattice and return twiss.
+- *FODO Testlattice* - Small FODO lattice for benchmarking theories and scripts
+    - *Lattice Setup* - Setting up basic lattice and return twiss.
     - *Phase Trombone* - Setting up basic lattice, match tunes via a phase trombone and return twiss.
+- *PETRA3* - PETRA III, DESY's brilliant X-ray light source
+    - *Model Creation* - Creates model twiss files with AC-dipole and tune selection.
 
 ## Authors
 
 * **pyLHC/OMC-Team** - *Working Group* - [pyLHC](https://github.com/orgs/pylhc/teams/omc-team)
 
 ## License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
