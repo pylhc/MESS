@@ -35,7 +35,7 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
 - *FODO Testlattice* - Small FODO lattice for benchmarking theories and scripts.
     - *Lattice setup* - Setting up basic lattice and return twiss.
     - *Phase Trombone* - Setting up basic lattice, match tunes via a phase trombone and return twiss.
-- *PETRA* - PETRA III, DESY's brilliant X-ray light source
+- *PETRA3* - PETRA III, DESY's brilliant X-ray light source
     - *modelcreation* - Creates model twiss files with AC-dipole and tune selection
 
 ## Authors
