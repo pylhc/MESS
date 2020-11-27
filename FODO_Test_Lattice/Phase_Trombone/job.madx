@@ -1,0 +1,179 @@
+! Overall length of the test lattice
+circum = 260;
+
+! FODO cell length
+lcell = 20;
+
+! Strength of the focussing and defocussing quadrupoles
+! Cell phase advance is 0.25
+f = lcell / sin(pi/4) / 4;
+kf = 1.0 / f;
+kd = -1.0 / f;
+
+kfx := kf;
+kdx := kd;
+
+kf1 = 1.0 / f;
+kd1 = -1.0 / f;
+kf2 = 1.0 / f;
+kd2 = -1.0 / f;
+kf3 = 1.0 / f;
+kd3 = -1.0 / f;
+
+sk = 0.0;
+
+dkf = 0;
+dkd = 0;
+kofx = 0;
+kodx = 0;
+
+! Detuning of phase adjust cell
+dphix = +0.03;
+dphiy = +0.06;
+
+beam;
+
+! Element definitions
+qf: multipole, knl:={0, kf};
+qd: multipole, knl:={0, kd};
+
+! Quadrupole with possible field errors
+qfk: multipole, knl:={0, kf + dkf};
+qdk: multipole, knl:={0, kd - dkd};
+
+qfx: multipole, knl:={0, kfx, 0, 0};
+qdx: multipole, knl:={0, kdx, 0, 0};
+
+! Thin octupole
+osx: multipole, knl:={0, 0, 0, kofx};
+
+qfp1: multipole, knl:={0, kf1};
+qdp1: multipole, knl:={0, kd1};
+qfp2: multipole, knl:={0, kf2};
+qdp2: multipole, knl:={0, kd2};
+qfp3: multipole, knl:={0, kf3};
+qdp3: multipole, knl:={0, kd3};
+
+! Set up matrix element
+! MAD-X initializes variables with zero whereas uninitialized parameters for matrix are set to identity transform
+! Thus R values should be properly set before twiss is called
+trombone: matrix, rm11 := r11,
+                  rm12 := r12,
+                  rm16 := r16,
+                  rm21 := r21,
+                  rm22 := r22,
+                  rm26 := r26,
+                  rm33 := r33,
+                  rm34 := r34,
+                  rm43 := r43,
+                  rm44 := r44,
+                  rm51 := r51,
+                  rm52 := r52,
+                  rm55 := 1.,
+                  rm66 := 1.;
+
+
+
+! Skew quadrupoles
+sq1:  multipole, ksl := {0, ska};
+sq2: multipole, ksl := {0, skc};
+
+sq3:  multipole, ksl := {0, skb};
+sq4: multipole, ksl := {0, skd};
+
+! Define basic FODO cell
+cell: sequence, refer=center, l=lcell;
+    smark: marker, at=0.;
+    qf:qf, at=0.25*lcell;
+    qd:qd, at=0.75*lcell;
+    smend: marker, at=lcell;
+endsequence;
+
+! Define phase adjust cell
+phaseshiftcell: sequence, refer=center, l=3*lcell;
+    qfp1: qfp1, at=0.25*lcell;
+    qdp1: qdp1, at=0.75*lcell;
+    qfp2: qfp2, at=1.25*lcell;
+    qdp2: qdp2, at=1.75*lcell;
+    qfp3: qfp3, at=2.25*lcell;
+    qdp3: qdp3, at=2.75*lcell;
+endsequence;
+
+! Define overall cell
+seq: sequence, refer=center, l=circum;
+startark: marker, at=0;
+qf1:qf, at=0.25*lcell;
+sk1: sq1, at=0.375*lcell;
+qdx:qdx, at=0.75*lcell;
+sk3: sq3, at=0.875*lcell;
+qfx:qfx, at=1.25*lcell;
+osx:osx, at=1.375*lcell;
+bsmeter: marker, at=1.5*lcell;
+qd1:qd, at=1.75*lcell;
+qf2:qf, at=2.25*lcell;
+sk2: sq2, at=2.375*lcell;
+qd2:qd, at=2.75*lcell;
+sk4: sq4, at=2.875*lcell;
+trombone: trombone, at=3*lcell;
+phaseshiftcell, at=4.5*lcell;
+qf3:qfk, at=6.25*lcell;
+qd3:qdk, at=6.75*lcell;
+qf4:qfk, at=7.25*lcell;
+qd4:qdk, at=7.75*lcell;
+qf5:qfk, at=8.25*lcell;
+qd5:qdk, at=8.75*lcell;
+qf6:qfk, at=9.25*lcell;
+qd6:qdk, at=9.75*lcell;
+qf7:qf, at=10.25*lcell;
+qd7:qd, at=10.75*lcell;
+qf8:qf, at=11.25*lcell;
+qd8:qd, at=11.75*lcell;
+qf9:qf, at=12.25*lcell;
+qd9:qd, at=12.75*lcell;
+endsequence;
+
+use, sequence=cell;
+
+! Match cell to phase advance of 0.25 in both planes
+match, sequence=cell;
+    VARY, NAME=kf, LOWER=-1E22, UPPER=1E22;
+    VARY, NAME=kd, LOWER=-1E22, UPPER=1E22;
+    CONSTRAINT, RANGE=#E, MUX=0.25;
+    CONSTRAINT, RANGE=#E, MUY=0.25;
+    LMDIF, CALLS=5000, TOLERANCE=1E-14;
+endmatch;
+
+! Save optics functions for setting phase trombone
+twiss;
+betxend = table(twiss, smend, betx);
+betyend = table(twiss, smend, bety);
+alfxend = table(twiss, smend, alfx);
+alfyend = table(twiss, smend, alfy);
+dxend = table(twiss, smend, dx);
+dpxend = table(twiss, smend, dpx);
+
+value, betxend;
+value, betyend;
+value, alfxend;
+value, alfyend;
+
+! Set trombone values
+r11 := cos(twopi * dphix) + alfxend * sin(twopi * dphix);
+r12 := betxend * sin(twopi * dphix);
+r22 := cos(twopi * dphix) - alfxend * sin(twopi * dphix);
+r21 := -sin(twopi * dphix) * (1 + alfxend^2) / betxend;
+r33 := cos(twopi * dphiy) + alfyend * sin(twopi * dphiy);
+r34 := betyend * sin(twopi * dphiy);
+r44 := cos(twopi * dphiy) - alfyend * sin(twopi * dphiy);
+r43 := -sin(twopi * dphiy) * (1 + alfyend^2) / betyend;
+r16 := dxend * (1 - r11) - r12 * dpxend;
+r26 := dpxend * (1 - r22) - r21 * dxend;
+r51 := r21 * r16 - r11 * r26;
+r52 := r22 * r16 - r12 * r26;
+
+beam;
+use, sequence=seq;
+select, flag=twiss, clear;
+twiss, file="twiss.tfs", RIPKEN=TRUE, centre;
+
+! Good to go

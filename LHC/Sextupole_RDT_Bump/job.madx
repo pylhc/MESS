@@ -1,0 +1,25 @@
+! Set up LHC Beam 1 sequence
+call, file="lhc_as-built.seq";
+
+! Two sextupole elements are modified as in the LHC sequence they are already put in circuits
+MS.30R1.B1, K2 := ksd_mod, polarity=-1;
+MS.26R1.B1, K2 := ksd_mod, polarity=-1;
+
+! Loading modified inj optics with all sextupoles turned off
+call, file="opticsfile.1";
+
+! Beam definition
+beam, sequence=lhcb1, bv=1, energy=NRJ, particle=proton, npart=1.0e10, kbunch=1, ex=7.29767146889e-09, ey=7.29767146889e-09;
+   		  
+! odifying strength of the two sextupoles to create a closed sextupole RDT bump
+ksd_mod = 4430*0.75/21666;
+
+Use, sequence=lhcb1;
+
+! Call PTC to create a twiss containing all RDTs
+PTC_CREATE_UNIVERSE;
+PTC_CREATE_LAYOUT, MODEL=3, METHOD=6, NST=1;
+PTC_TWISS, ICASE=6, NO=3, NORMAL=TRUE, TRACKRDTS=TRUE;
+SELECT, FLAG=twissrdt, CLEAR;
+WRITE, TABLE=twissrdt, file="ptc_rdt.tfs";
+PTC_END;

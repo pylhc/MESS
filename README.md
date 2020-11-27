@@ -6,7 +6,7 @@ This repository is a collection of MAD-X scripts used for various studies in the
 
 ### Getting Started
 
-The scripts can be browsed via github or the full repository can be obtained either via `git clone https://github.com/pylhc/PyLHC.git` or downloading the zipped repository.
+The scripts can be browsed via github or the full repository can be obtained either via `git clone https://github.com/pylhc/MESS.git` or downloading the zipped repository.
 
 ### Prerequisites
 
@@ -34,6 +34,7 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
     - *Tracking with ACD* - Setup for AC-dipole in LHC and subsequent tracking
 - *FODO Testlattice* - Small FODO lattice for benchmarking theories and scripts.
     - *Lattice setup* - Setting up basic lattice and return twiss.
+    - *Phase Trombone* - Setting up basic lattice, match tunes via a phase trombone and return twiss.
 - *PETRA* - PETRA III, DESY's brilliant X-ray light source
     - *modelcreation* - Creates model twiss files with AC-dipole and tune selection
 
@@ -41,7 +42,5 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
 
 * **pyLHC/OMC-Team** - *Working Group* - [pyLHC](https://github.com/orgs/pylhc/teams/omc-team)
 
-<!--
 ## License
-This project is licensed under the  License - see the [LICENSE.md](LICENSE.md) file for details
--->
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
