@@ -1,4 +1,20 @@
 ! ----------------------------------------------------------------------------------------------
+! ---- parameters
+! ----------------------------------------------------------------------------------------------
+
+integer_Qx = --Iqx--;
+integer_Qy = --Iqy--;
+
+! natural tunes
+Qx = --qx-- + integer_Qx;
+Qy = --qy-- + integer_Qy;
+
+! driven tunes
+dQx = --dqx-- + integer_Qx;
+dQy = --dqy-- + integer_Qy;
+
+
+! ----------------------------------------------------------------------------------------------
 ! ---- macro defs ------------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------------------------
 
@@ -88,26 +104,13 @@ match_tunes(nqx, nqy): macro = {
 ! ---- main part -------------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------------------------
 
-ACD = 1;  ! install ac dipole into model?
+ACD = --acd--;  ! install ac dipole into model?
 
 call, file='p3x_v23.seq';
 BEAM, PARTICLE=POSITRON, ENERGY=6.0,bunched, RADIATE, sequence=RING;
-if (1 == 0) {
-  makethin, sequence=ring;
-};
+
+makethin, sequence=ring;
 use, sequence=ring;
-
-integer_Qx = 37;
-integer_Qy = 30;
-
-! natural tunes
-Qx = 0.135258786345 + integer_Qx;
-Qy = 0.309711880097 + integer_Qy;
-
-! driven tunes
-dQx = 0.1122033114 + integer_Qx;
-dQy = 0.303563753445 + integer_Qy;
-
 
 select, flag=twiss, clear;
 exec, match_tunes(Qx, Qy);
