@@ -2,33 +2,21 @@
 ! ---- parameters
 ! ----------------------------------------------------------------------------------------------
 
-integer_Qx = --Iqx--;
-integer_Qy = --Iqy--;
+Qx=37.14;           ! Nominal horizontal tune
+Qy=37.31;           ! Nominal vertical tune
 
-! natural tunes
-Qx = --qx-- + integer_Qx;
-Qy = --qy-- + integer_Qy;
+ACD=0;
+ACQx=30.13;         ! Horizontal ac-dipole tune
+ACQy=30.32;         ! Vertical ac-dipole tune
 
-! driven tunes
-dQx = --dqx-- + integer_Qx;
-dQy = --dqy-- + integer_Qy;
+
 
 
 ! ----------------------------------------------------------------------------------------------
 ! ---- macro defs ------------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------------------------
 
-install_errors() : macro = {
-  ! install errors
 
-  USE, sequence=ring;
-
-  ! todo: add errors here
-
-  select flag = error, clear; select flag=error;
-  esave file='errors.dat';
-
-};
 
 install_adt_ac_dipole(natural_qx, natural_qy, driven_qx, driven_qy): macro = {
 
@@ -100,7 +88,7 @@ match_tunes(nqx, nqy): macro = {
 ! ---- main part -------------------------------------------------------------------------------
 ! ----------------------------------------------------------------------------------------------
 
-ACD = --acd--;  ! install ac dipole into model?
+
 
 call, file='p3x_v23.seq';
 BEAM, PARTICLE=POSITRON, ENERGY=6.0,bunched, RADIATE, sequence=RING;
@@ -113,11 +101,9 @@ exec, match_tunes(Qx, Qy);
 exec, do_twiss('twiss.dat');
 exec, do_twiss_elements('twiss_elements.dat');
 
-! if we want to introduce errors in the lattice:
-!exec, install_errors();
 
 if (ACD == 1) {
-    exec, install_adt_ac_dipole(Qx, Qy, dQx, dQy);
+    exec, install_adt_ac_dipole(Qx, Qy, ACQx, ACQy);
     exec, do_twiss('twiss_adt.dat');
     exec, do_twiss_elements('twiss_elements_adt.dat');
 };
