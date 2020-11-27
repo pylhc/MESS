@@ -1,65 +1,44 @@
-! ----------------------------------------------------------------------------------------------
-! ---- parameters
-! ----------------------------------------------------------------------------------------------
+! -------------------- !
+! ---- Parameters ---- !
+! -------------------- !
 
-Qx=37.14;           ! Nominal horizontal tune
-Qy=30.31;           ! Nominal vertical tune
+Qx = 37.14;           ! Nominal horizontal tune
+Qy = 30.31;           ! Nominal vertical tune
 
-ACD=0;
-ACQx=37.13;         ! Nominal vertical tune
-ACQy=30.32;         ! Vertical ac-dipole tune
-
-
+ACD = 0;              ! Set to 1 to install and use the AC Dipole
+ACQx = 37.13;         ! Horizontal driven tune
+ACQy = 30.32;         ! Vertical driven tune
 
 
-! ----------------------------------------------------------------------------------------------
-! ---- macro defs ------------------------------------------------------------------------------
-! ----------------------------------------------------------------------------------------------
-
-
+! --------------------------- !
+! ---- Macro definitions ---- !
+! --------------------------- !
 
 install_adt_ac_dipole(natural_qx, natural_qy, driven_qx, driven_qy): macro = {
-
-
-        betxac=table(twiss,kifbhn,betx);
-        betyac=table(twiss,kifbvn,bety);
-        hacmap21 = 2 * (cos(2 * pi * driven_qx) - cos(2 * pi * natural_qx)) / (betxac * sin(2 * pi * natural_qx));
-        vacmap43 = 2 * (cos(2 * pi * driven_qy) - cos(2 * pi * natural_qy)) / (betyac * sin(2 * pi * natural_qy));
-        hacmap: matrix, l=0, rm21=hacmap21;
-        vacmap: matrix, l=0, rm43=vacmap43;
-        seqedit, sequence=ring;
-            flatten;
-            install, element=hacmap, at=0.512, from=kifbhn;
-            install, element=vacmap, at=0.512, from=kifbvn;
-        endedit;
-
-
-
+    betxac = table(twiss, kifbhn, betx);
+    betyac = table(twiss, kifbvn, bety);
+    hacmap21 = 2 * (cos(2 * pi * driven_qx) - cos(2 * pi * natural_qx)) / (betxac * sin(2 * pi * natural_qx));
+    vacmap43 = 2 * (cos(2 * pi * driven_qy) - cos(2 * pi * natural_qy)) / (betyac * sin(2 * pi * natural_qy));
+    hacmap: matrix, l=0, rm21=hacmap21;
+    vacmap: matrix, l=0, rm43=vacmap43;
+    seqedit, sequence=ring;
+    flatten;
+    install, element=hacmap, at=0.512, from=kifbhn;
+    install, element=vacmap, at=0.512, from=kifbvn;
+    endedit;
     use, sequence=ring;
 }
 
 do_twiss(filename) : macro = {
     select, flag=twiss, clear;
-
-    select, flag=twiss,
-        column=name, s, betx, alfx, bety, alfy,
-        mux, muy, dx, dy, dpx, dpy, x, y,
-        k1l, k1sl, k2l, k3l, k4l, wx, wy, phix,
-        phiy, dmux, dmuy, keyword, dbx, dby,
-        r11, r12, r21, r22,
-        pattern="^BPM";
+    select, flag=twiss, pattern="^BPM", column=name, s, betx, alfx, bety, alfy,mux, muy, dx, dy, dpx, dpy, x, y,
+    k1l, k1sl, k2l, k3l, k4l, wx, wy, phix, phiy, dmux, dmuy, keyword, dbx, dby, r11, r12, r21, r22;
     twiss, chrom, sequence=ring, file=filename;
-
 }
 
 do_twiss_elements(filename) : macro = {
-    select, flag=twiss,
-        column=name, s, betx, alfx, bety, alfy,
-        mux, muy, dx, dy, dpx, dpy, x, y,
-        k1l, k1sl, k2l, k3l, k4l, wx, wy, phix,
-        phiy, dmux, dmuy, keyword, dbx, dby,
-        r11, r12, r21, r22,
-        pattern="^BPM";
+    select, flag=twiss, pattern="^BPM", column=name, s, betx, alfx, bety, alfy, mux, muy, dx, dy, dpx, dpy, x, y,
+    k1l, k1sl, k2l, k3l, k4l, wx, wy, phix, phiy, dmux, dmuy, keyword, dbx, dby, r11, r12, r21, r22;
     select, flag=twiss, class=monitor;
     select, flag=twiss, class=quadrupole;
     select, flag=twiss, class=skewquadrupole;
@@ -84,25 +63,23 @@ match_tunes(nqx, nqy): macro = {
     endmatch;
 };
 
-! ----------------------------------------------------------------------------------------------
-! ---- main part -------------------------------------------------------------------------------
-! ----------------------------------------------------------------------------------------------
 
+! ------------------- !
+! ---- Main part ---- !
+! ------------------- !
 
-
-call, file='p3x_v23.seq';
+call, file="p3x_v23.seq";
 BEAM, PARTICLE=POSITRON, ENERGY=6.0,bunched, RADIATE, sequence=RING;
 
 use, sequence=ring;
 
 select, flag=twiss, clear;
 exec, match_tunes(Qx, Qy);
-exec, do_twiss('twiss.dat');
-exec, do_twiss_elements('twiss_elements.dat');
-
+exec, do_twiss("twiss.dat");
+exec, do_twiss_elements("twiss_elements.dat");
 
 if (ACD == 1) {
     exec, install_adt_ac_dipole(Qx, Qy, ACQx, ACQy);
-    exec, do_twiss('twiss_adt.dat');
-    exec, do_twiss_elements('twiss_elements_adt.dat');
+    exec, do_twiss("twiss_adt.dat");
+    exec, do_twiss_elements("twiss_elements_adt.dat");
 };
