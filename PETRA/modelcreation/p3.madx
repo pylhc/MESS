@@ -23,14 +23,10 @@ install_errors() : macro = {
 
   USE, sequence=ring;
 
-    Rr=1.000;
-  ON_B2R=1;
-  GCUTR=3;
-  eoption, seed= 4687;
-
+  ! todo: add errors here
 
   select flag = error, clear; select flag=error;
-  esave file='./models/errors.dat';
+  esave file='errors.dat';
 
 };
 
@@ -116,7 +112,10 @@ select, flag=twiss, clear;
 exec, match_tunes(Qx, Qy);
 exec, do_twiss('twiss.dat');
 exec, do_twiss_elements('twiss_elements.dat');
+
+! if we want to introduce errors in the lattice:
 !exec, install_errors();
+
 if (ACD == 1) {
     exec, install_adt_ac_dipole(Qx, Qy, dQx, dQy);
     exec, do_twiss('twiss_adt.dat');
