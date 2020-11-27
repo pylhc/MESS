@@ -3,10 +3,10 @@
 ! ----------------------------------------------------------------------------------------------
 
 Qx=37.14;           ! Nominal horizontal tune
-Qy=37.31;           ! Nominal vertical tune
+Qy=30.31;           ! Nominal vertical tune
 
-ACD=0;
-ACQx=30.13;         ! Horizontal ac-dipole tune
+ACD=1;
+ACQx=37.13;         ! Nominal vertical tune
 ACQy=30.32;         ! Vertical ac-dipole tune
 
 
@@ -77,9 +77,9 @@ do_twiss_elements(filename) : macro = {
 
 match_tunes(nqx, nqy): macro = {
     match;
+    global, q1=nqx, q2=nqy;
     vary, name=qd->k1;
     vary, name=qf->k1;
-    constraint, range=#E, mux=nqx, muy=nqy;
     lmdif;
     endmatch;
 };
@@ -93,7 +93,6 @@ match_tunes(nqx, nqy): macro = {
 call, file='p3x_v23.seq';
 BEAM, PARTICLE=POSITRON, ENERGY=6.0,bunched, RADIATE, sequence=RING;
 
-makethin, sequence=ring;
 use, sequence=ring;
 
 select, flag=twiss, clear;
