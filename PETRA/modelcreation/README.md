@@ -1,6 +1,4 @@
-## MAD-X scripts for model creation and tracking simulations for DESY's PETRA III lattice
-
-### Model creation
+## Model creation
 
 The scripts in the folder `modelcreation` provide twiss files of specific PETRA III models
 
