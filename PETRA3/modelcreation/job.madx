@@ -5,7 +5,7 @@
 Qx=37.14;           ! Nominal horizontal tune
 Qy=30.31;           ! Nominal vertical tune
 
-ACD=1;
+ACD=0;
 ACQx=37.13;         ! Nominal vertical tune
 ACQy=30.32;         ! Vertical ac-dipole tune
 
