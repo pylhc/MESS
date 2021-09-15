@@ -1,0 +1,226 @@
+!#############################################################################
+!############################# Setting Up Lattice ############################
+!#############################################################################
+
+call, file="lhc_as-built.seq";
+beam;
+
+! Cycling w.r.t. to IP3 (mandatory to find closed orbit in collision in the presence of errors)
+seqedit, sequence=lhcb2; flatten; cycle, start=IP3; endedit;
+
+
+!#############################################################################
+!######## Sequence Editing and Adding 4 Skew Quadrupoles Around ARC12 ########
+!#############################################################################
+
+SQ1L: MULTIPOLE, KSL:={0, sk1l};
+SQ2L: MULTIPOLE, KSL:={0, sk2l};
+SQ3L: MULTIPOLE, KSL:={0, sk3l};
+SQ4L: MULTIPOLE, KSL:={0, sk4l};
+
+SQ1R: MULTIPOLE, KSL:={0, sk1r};
+SQ2R: MULTIPOLE, KSL:={0, sk2r};
+SQ3R: MULTIPOLE, KSL:={0, sk3r};
+SQ4R: MULTIPOLE, KSL:={0, sk4r};
+
+SEQEDIT, SEQUENCE= lhcb2;
+FLATTEN;
+INSTALL, ELEMENT=SQ1L, AT=1.551, FROM=MQ.13R1.B2;
+INSTALL, ELEMENT=SQ2L, AT=1.551, FROM=MQ.14R1.B2;
+INSTALL, ELEMENT=SQ3L, AT=1.551, FROM=MQ.15R1.B2;
+INSTALL, ELEMENT=SQ4L, AT=1.551, FROM=MQ.16R1.B2;
+INSTALL, ELEMENT=SQ4R, AT=1.551, FROM=MQ.17L2.B2;
+INSTALL, ELEMENT=SQ3R, AT=1.551, FROM=MQ.16L2.B2;
+INSTALL, ELEMENT=SQ2R, AT=1.551, FROM=MQ.15L2.B2;
+INSTALL, ELEMENT=SQ1R, AT=1.551, FROM=MQ.14L2.B2;
+FLATTEN;
+ENDEDIT;
+
+USE, SEQUENCE=lhcb2;
+
+! Call injections optics
+call, file="opticsfile.1";
+
+! Set up beam
+beam, sequence=lhcb2, bv=-1, energy=NRJ, particle=proton, npart=1.0e10, kbunch=1, ex=7.29767146889e-09, ey=7.29767146889e-09;
+
+Use, sequence=lhcb2;
+
+! Match Tunes and Chromaticity
+MATCH;
+  GLOBAL, Q1=62.31, Q2=60.32;
+  GLOBAL, DQ1=2., DQ2=2.;
+  VARY, NAME=dQx.b2_sq;
+  VARY, NAME=dQy.b2_sq;
+  VARY, NAME=dQpx.b2_sq;
+  VARY, NAME=dQpy.b2_sq;
+  LMDIF, CALLS=100, TOLERANCE=1.0E-21;
+ENDMATCH;
+
+
+! Set up skew quadrupoles around arc12
+sk1l = 0.5E-3;
+sk2l = sk1l/3;
+sk3l = sk1l/4;
+sk4l = sk1l/3;
+
+sk1r = -sk1l;
+sk2r = -sk2l;
+sk3r = -sk3l;
+sk4r = -sk4l;
+
+! Match strength to remaining 4 correctors to close bump
+MATCH, SEQUENCE = lhcb2;
+  VARY, NAME=sk1r, LOWER=-1E22, UPPER=1E22;
+  VARY, NAME=sk2r, LOWER=-1E22, UPPER=1E22;
+  VARY, NAME=sk3r, LOWER=-1E22, UPPER=1E22;
+  VARY, NAME=sk4r, LOWER=-1E22, UPPER=1E22;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R11=0;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R12=0;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R21=0;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R22=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R11=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R12=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R21=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R22=0;
+  LMDIF, CALLS=5000, TOLERANCE=1E-22;
+  JACOBIAN, CALLS=1000, TOLERANCE=1E-22;
+ENDMATCH;
+
+! Match Tunes to compensate second order contribution of coupling
+MATCH;
+  GLOBAL, Q1=62.31, Q2=60.32;
+  VARY, NAME=dQx.b2_sq;
+  VARY, NAME=dQy.b2_sq;
+  LMDIF, CALLS=100, TOLERANCE=1.0E-21;
+ENDMATCH;
+
+! Twiss results to output file
+TWISS, FILE='twiss.b2.tfs', ripken=True;
+
+! Set skew quadrupole strength temporarily to 0 for setup of Beam 4
+sk1l = 0.0E-3;
+sk2l = sk1l/3;
+sk3l = sk1l/4;
+sk4l = sk1l/3;
+
+sk1r = -sk1l;
+sk2r = -sk2l;
+sk3r = -sk3l;
+sk4r = -sk4l;
+
+
+!#############################################################################
+!############################# Setting Up Beam 4 Lattice #####################
+!#############################################################################
+
+call, file="lhcb4_as-built.seq";
+beam;
+
+use, sequence=lhcb2;
+
+! Cycling w.r.t. to IP3 (mandatory to find closed orbit in collision in the presence of errors)
+seqedit, sequence=lhcb2; flatten; cycle, start=IP3; endedit;
+
+
+!#############################################################################
+!######## Sequence Editing and Adding 4 Skew Quadrupoles Around ARC12 ########
+!#############################################################################
+
+SQ1L: MULTIPOLE, KSL:={0, sk1l};
+SQ2L: MULTIPOLE, KSL:={0, sk2l};
+SQ3L: MULTIPOLE, KSL:={0, sk3l};
+SQ4L: MULTIPOLE, KSL:={0, sk4l};
+
+SQ1R: MULTIPOLE, KSL:={0, sk1r};
+SQ2R: MULTIPOLE, KSL:={0, sk2r};
+SQ3R: MULTIPOLE, KSL:={0, sk3r};
+SQ4R: MULTIPOLE, KSL:={0, sk4r};
+
+SEQEDIT, SEQUENCE= lhcb2;
+FLATTEN;
+INSTALL, ELEMENT=SQ1L, AT=1.551, FROM=MQ.13R1.B2;
+INSTALL, ELEMENT=SQ2L, AT=1.551, FROM=MQ.14R1.B2;
+INSTALL, ELEMENT=SQ3L, AT=1.551, FROM=MQ.15R1.B2;
+INSTALL, ELEMENT=SQ4L, AT=1.551, FROM=MQ.16R1.B2;
+INSTALL, ELEMENT=SQ4R, AT=1.551, FROM=MQ.17L2.B2;
+INSTALL, ELEMENT=SQ3R, AT=1.551, FROM=MQ.16L2.B2;
+INSTALL, ELEMENT=SQ2R, AT=1.551, FROM=MQ.15L2.B2;
+INSTALL, ELEMENT=SQ1R, AT=1.551, FROM=MQ.14L2.B2;
+FLATTEN;
+ENDEDIT;
+
+USE, SEQUENCE=lhcb2;
+
+! Call injections optics
+call, file="opticsfile.1";
+
+! Set up beam
+beam, sequence=lhcb2, bv=1, energy=NRJ, particle=proton, npart=1.0e10, kbunch=1, ex=7.29767146889e-09, ey=7.29767146889e-09;
+
+Use, sequence=lhcb2;
+
+! Match Tunes and Chromaticity
+MATCH;
+  GLOBAL, Q1=62.31, Q2=60.32;
+  GLOBAL, DQ1=2., DQ2=2.;
+  VARY, NAME=dQx.b2_sq;
+  VARY, NAME=dQy.b2_sq;
+  VARY, NAME=dQpx.b2_sq;
+  VARY, NAME=dQpy.b2_sq;
+  LMDIF, CALLS=100, TOLERANCE=1.0E-21;
+ENDMATCH;
+
+
+! Set up skew quadrupoles around arc12
+sk1l = 0.5E-3;
+sk2l = sk1l/3;
+sk3l = sk1l/4;
+sk4l = sk1l/3;
+
+sk1r = -sk1l;
+sk2r = -sk2l;
+sk3r = -sk3l;
+sk4r = -sk4l;
+
+! Match strength to remaining 4 correctors to close bump
+MATCH, SEQUENCE = lhcb2;
+  VARY, NAME=sk1r, LOWER=-1E22, UPPER=1E22;
+  VARY, NAME=sk2r, LOWER=-1E22, UPPER=1E22;
+  VARY, NAME=sk3r, LOWER=-1E22, UPPER=1E22;
+  VARY, NAME=sk4r, LOWER=-1E22, UPPER=1E22;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R11=0;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R12=0;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R21=0;
+  CONSTRAINT, RANGE=S.DS.L2.B2, R22=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R11=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R12=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R21=0;
+  CONSTRAINT, RANGE=E.DS.L2.B2, R22=0;
+  LMDIF, CALLS=5000, TOLERANCE=1E-22;
+  JACOBIAN, CALLS=1000, TOLERANCE=1E-22;
+ENDMATCH;
+
+! Match Tunes to compensate second order contribution of coupling
+MATCH;
+  GLOBAL, Q1=62.31, Q2=60.32;
+  VARY, NAME=dQx.b2_sq;
+  VARY, NAME=dQy.b2_sq;
+  LMDIF, CALLS=100, TOLERANCE=1.0E-21;
+ENDMATCH;
+
+! Twiss results to output file
+TWISS, FILE='twiss.b4.tfs', ripken=True;
+
+
+ptc_create_universe;
+ptc_create_layout, model=3, method=4, nst=3;
+
+ptc_start, x=1E-6, px=0.0, y=1E-6, py=0.0;
+
+ptc_observe, place=IP1;
+
+ptc_track, icase=5, closed_orbit, turns=256, norm_no=5, element_by_element, recloss, maxaper={1000, 1000, 1000, 1000, 1000, 1000}, onetable=True;
+ptc_track_end;
+ptc_end;
+
