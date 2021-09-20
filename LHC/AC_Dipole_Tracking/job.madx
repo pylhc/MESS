@@ -74,9 +74,9 @@ if(is_thin==1) {
 ! ============================= !
 
 ! Will be at 0 from turn 0 to 'ramp1', then goes up until max strength at 'ramp2', stays at max strength until 'ramp3', and finally goes down to 0 at 'ramp4' where it will stay until end of tracking.
-! Takes 2000 turns to ramp up AC Dipole (needed to preserve adiabaticity)
+! Usually 2000 ramp turns and 6600 'flat-top' turns for the AC dipole in the LHC, better to reproduce this.
 ! If you don't let the AC dipole ramp down adiabatically Drive will cry and say 'NO KICK FOUND'.
-! Usually 6600 turns of AC dipole 'flat-top' in the LHC, better to reproduce this.
+! Importantly, to see an effect on tracking the AC dipole needs to be installed as a kicker. This does NOT affect TWISS functions: to do so, it should be installed as a matrix element.
 MKACH.6L4.B1: hacdipole, l=0, freq:=Qxd, lag=0, volt:=voltx, ramp1=100, ramp2=2100, ramp3=8700, ramp4=10700;
 MKACV.6L4.B1: vacdipole, l=0, freq:=Qyd, lag=0, volt:=volty, ramp1=100, ramp2=2100, ramp3=8700, ramp4=10700;
 
