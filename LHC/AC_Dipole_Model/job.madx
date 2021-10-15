@@ -33,10 +33,6 @@ dqyfinal = qprime;
 DeltaQx = -0.01;
 DeltaQy = 0.012;
 
-! VALUE OF THE LINEAR COUPLING KNOBS TO BE APPLIED AT THE END OF THE MASK
-!couplre = 0.003;
-!couplim = -0.001;
-
 
 !#####################################################################
 !############################## Options ##############################
@@ -53,9 +49,7 @@ orbittol = 1e-9; ! Tolerance on orbit matching. ! Something small eg 1e-9 is dec
 !############################## Setting up lattice ##############################
 !################################################################################
 
-! Slicing for tracking
 call,file="lhc_as-built.seq";
-
 
 ! Cycling w.r.t. to IP3: if we put errors in the script, we cycle from/to point 3 so that MADX
 ! has an easier time finding the orbit. It's just easier for MAD than to start at IP1 / IP5
@@ -124,8 +118,7 @@ match, chrom;
 endmatch;
 
 
-TWISS, FILE='Outputdata/twiss_no_ac-dipole.tfs';
-
+TWISS, FILE="Outputdata/twiss_no_ac_dipole.tfs";
 
 
 !################################################
@@ -133,16 +126,16 @@ TWISS, FILE='Outputdata/twiss_no_ac-dipole.tfs';
 !################################################
 
 Qx = qxfinal;
-Qxd = qxfinal+DeltaQx;
+Qxd = qxfinal + DeltaQx;
 
 Qy = qyfinal;
-Qyd = qyfinal+DeltaQy;
+Qyd = qyfinal + DeltaQy;
 
 betxac=table(twiss, MKQA.6L4.B1, BEAM, betx);
 betyac=table(twiss, MKQA.6L4.B1, BEAM, bety);
 
-hacmap21=2*(cos(2*pi*Qxd)-cos(2*pi*Qx))/(betxac*sin(2*pi*Qx));
-vacmap43=2*(cos(2*pi*Qyd)-cos(2*pi*Qy))/(betyac*sin(2*pi*Qy));
+hacmap21 = 2 * (cos(2 * pi * Qxd) - cos(2 * pi * Qx)) / (betxac * sin(2 * pi * Qx));
+vacmap43 = 2 * (cos(2 * pi * Qyd) - cos(2 * pi * Qy)) / (betyac * sin(2 * pi * Qy));
 
 hacmap: matrix, l=0, rm21=hacmap21;
 vacmap: matrix, l=0, rm43=vacmap43;
@@ -152,6 +145,6 @@ seqedit, sequence=LHCB1;
     install, element=hacmap, at=1.583/2, from=MKQA.6L4.B1;
     install, element=vacmap, at=1.583/2, from=MKQA.6L4.B1;
 endedit;
+use, sequence=LHCB1;
 
-use, period=LHCB1;
-TWISS, FILE='Outputdata/twiss_ac-dipole.tfs';
+TWISS, FILE="Outputdata/twiss_ac_dipole.tfs";
