@@ -16,7 +16,7 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
 
 - Each script directory contains a ``README``, outlining the basic functionality and notes on possible pitfalls.
 - Excessive use of comments in the MAD-X scripts itself is encouraged.
-- General documentation of the OMC-Teams software on <https://twiki.cern.ch/twiki/bin/view/BEABP/OMC>.
+- General documentation of the OMC Team is located at https://pylhc.github.io/.
 
 ### Maintainability
 
