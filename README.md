@@ -1,6 +1,6 @@
 
 
-# <img src="https://twiki.cern.ch/twiki/pub/BEABP/Logos/OMC_logo.png" height="28"> MESS - MAD-X Example Study Scripts
+# <img src="https://raw.githubusercontent.com/pylhc/pylhc.github.io/master/docs/assets/logos/OMC_logo.svg" height="28"> MESS - MAD-X Example Study Scripts
 
 This repository is a collection of MAD-X scripts used for various studies in the optics measurements and corrections group (OMC).
 
