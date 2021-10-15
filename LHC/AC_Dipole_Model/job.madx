@@ -124,7 +124,7 @@ match, chrom;
 endmatch;
 
 
-TWISS, FILE='twiss_no_ac-dipole.tfs';
+TWISS, FILE='Outputdata/twiss_no_ac-dipole.tfs';
 
 
 
@@ -154,4 +154,4 @@ seqedit, sequence=LHCB1;
 endedit;
 
 use, period=LHCB1;
-TWISS, FILE='twiss_ac-dipole.tfs';
+TWISS, FILE='Outputdata/twiss_ac-dipole.tfs';
