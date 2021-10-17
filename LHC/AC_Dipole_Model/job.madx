@@ -1,0 +1,150 @@
+!###############################################################################################
+!############################## Create soft links and directories ##############################
+!###############################################################################################
+
+System, "rm -r Outputdata";
+System, "mkdir Outputdata";
+
+
+!#############################################################################
+!############################## Tune and chroma ##############################
+!#############################################################################
+
+! Tune definitions used in some of the later macros
+qx0 = 62.26;
+qy0 = 60.32;
+tsplit =  2.0;
+qx00 = 62.0;
+qy00 = 60.0;
+qprime = 2.0;
+
+qxinit = qx0;
+qyinit = qy0;
+qxfinal = 62.31; ! Define initial qxinit / qyinit with larger separation for robustness to large coupling errors as sources are introduced (want to avoid getting stuck on the wrong side of qx=qy)
+qyfinal = 60.32; ! Then rematch to desired final tunes at the very end of the script. qx0 etc are kept with the init values for coupling routines etc.
+
+
+dqxinit = qprime;
+dqyinit = qprime;
+dqxfinal = qprime;
+dqyfinal = qprime;
+
+! DO NOT FORGET TO SET THOSE VALUES
+DeltaQx = -0.01;
+DeltaQy = 0.012;
+
+
+!#####################################################################
+!############################## Options ##############################
+!#####################################################################
+
+mylhcbeam = 1; ! Always set to one as this script is only adapted for Beam 1 2018
+
+targetorbit =1; ! FLAG TO MATCH ORBIT USING VIRTUAL CORRECTORS - in practice need this if using any alignment errors
+zeroorbit = 1; ! FLAG to match orbit to zero instead of a target file
+orbittol = 1e-9; ! Tolerance on orbit matching. ! Something small eg 1e-9 is decent for matching to zero or to target. Can increase if want to have qualitative reproduction of RMS using old routines.
+
+
+!################################################################################
+!############################## Setting up lattice ##############################
+!################################################################################
+
+call,file="lhc_as-built.seq";
+
+! Cycling w.r.t. to IP3: if we put errors in the script, we cycle from/to point 3 so that MADX
+! has an easier time finding the orbit. It's just easier for MAD than to start at IP1 / IP5
+seqedit, sequence=lhcb1; flatten; cycle, start=IP3; endedit;
+
+
+! These are optics that correspond to different configs / betastar (inj / flattop...).
+! There are hardcoded 'knobs' in those files that do coupling / tune shift / chromaticity/ etc.
+! There is a README file in optics2018 with more info, see there.
+! => opticsfile.22 is with betastar 30cm at IP1 and IP5
+call, file="opticsfile.22";
+
+
+! =============================================================== !
+! Define energy again since it's set to 6.5TeV in the opticsfiles !
+! =============================================================== !
+
+NRJ = 6500;
+brho := NRJ * 1e9 / clight;
+normemit := 3.75e-6 / (NRJ / 0.938); ! This is normalized emittance.
+value, NRJ;
+value, brho;
+value, normemit;
+
+beam, sequence=lhcb1, bv=1, energy=NRJ, particle=proton, npart=1.0e10, kbunch=1, ex=normemit, ey=normemit;
+use, sequence=lhcb1;
+
+
+!#######################################################################################################
+!############################### Setup for orbit and error corrections #################################
+!###### Xing scheme should be disabled at start to simplify inclusion of errors/alignments/orbit #######
+!#######################################################################################################
+
+!on_x1 = 0; on_sep1 = 0; on_o1 = 0;
+!on_x2 = 0; on_sep2 = 0; on_o2 = 0; on_oe2 =0; on_a2 = 0 ;
+!on_x5 = 0; on_sep5 = 0; on_o5 = 0;
+!on_x8 = 0; on_sep8 = 0; on_o8 = 0; on_a8 = 0;  on_sep8h = 0; on_x8v = 0;
+
+!on_alice = 0;
+!on_sol_alice = 0;
+!on_lhcb = 0;
+!on_sol_atlas = 0;
+!on_sol_cms = 0;
+
+
+!##############################################################################################
+!################################ Orbit/Coupling/Tune matching ################################
+!##############################################################################################
+
+! ============================================================ !
+!                   Matching Tune and Chroma                   !
+! ============================================================ !
+
+match;
+  global, q1=qxfinal, q2=qyfinal;
+  vary, name=dQx.b1, step=1.0E-7;
+  vary, name=dQy.b1, step=1.0E-7;
+  lmdif, calls=1000, tolerance=1.0E-21;
+endmatch;
+
+match, chrom;
+  global, dq1=dqxfinal, dq2=dqyfinal;
+  vary, name=dQpx.b1, step=1.0E-7;
+  vary, name=dQpy.b1, step=1.0E-7;
+  lmdif, calls=1000, tolerance=1.0E-21;
+endmatch;
+
+
+TWISS, FILE="Outputdata/twiss_no_ac_dipole.tfs";
+
+
+!################################################
+!########## CREATE AC dipole model ##############
+!################################################
+
+Qx = qxfinal;
+Qxd = qxfinal + DeltaQx;
+
+Qy = qyfinal;
+Qyd = qyfinal + DeltaQy;
+
+betxac=table(twiss, MKQA.6L4.B1, BEAM, betx);
+betyac=table(twiss, MKQA.6L4.B1, BEAM, bety);
+
+hacmap21 = 2 * (cos(2 * pi * Qxd) - cos(2 * pi * Qx)) / (betxac * sin(2 * pi * Qx));
+vacmap43 = 2 * (cos(2 * pi * Qyd) - cos(2 * pi * Qy)) / (betyac * sin(2 * pi * Qy));
+
+hacmap: matrix, l=0, rm21=hacmap21;
+vacmap: matrix, l=0, rm43=vacmap43;
+
+seqedit, sequence=LHCB1;
+    flatten;
+    install, element=hacmap, at=1.583/2, from=MKQA.6L4.B1;
+    install, element=vacmap, at=1.583/2, from=MKQA.6L4.B1;
+endedit;
+use, sequence=LHCB1;
+
+TWISS, FILE="Outputdata/twiss_ac_dipole.tfs";

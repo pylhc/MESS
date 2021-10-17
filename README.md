@@ -31,7 +31,8 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
     - *Sextupole RDT Bump* - Creates closed sextupole RDT bump in Arc12.
     - *Injectionenergy with misaligments and correction* - Realistic model of the LHC at injection energy with misaligments and nonlinear correction.
     - *Kmod simulation* - Simulating K-Modulation in one Q1 quadrupole.
-    - *Tracking with ACD* - Setup for AC-dipole in LHC and subsequent tracking
+    - *Tracking with ACD* - Setup for AC-dipole in LHC and subsequent tracking.
+    - *Model Creation with ACD* - Setup for twiss outputs taking in consideration the effect of AC dipoles.
 - *FODO Testlattice* - Small FODO lattice for benchmarking theories and scripts
     - *Lattice Setup* - Setting up basic lattice and return twiss.
     - *Phase Trombone* - Setting up basic lattice, match tunes via a phase trombone and return twiss.
