@@ -27,7 +27,7 @@ To run the scripts, [MAD-X](https://mad.web.cern.ch/mad/) is required. If not ot
 ## Studies
 
 - *LHC* - The flagship collider of the 21st century
-    - *Coupling RDT Bump* - Creates closed coupling bumps in the LHC IR2 and Arc12.
+    - *Coupling RDT Bump* - Creates closed coupling bumps in the LHC IR2 and Arc12. For Beam2, a model twiss for clockwise orientation is created and then tracking is performed using the correct counterclockwise sequence of Beam2.
     - *Sextupole RDT Bump* - Creates closed sextupole RDT bump in Arc12.
     - *Injectionenergy with misaligments and correction* - Realistic model of the LHC at injection energy with misaligments and nonlinear correction.
     - *Kmod simulation* - Simulating K-Modulation in one Q1 quadrupole.
