@@ -32,7 +32,7 @@ WHILE(n<=Steps){
     value, n;
     select, flag=twiss, clear;
     TWISS, table=nominal;
-    K = TABLE(nominal, MQXA.1R1, k1l) / 6.37;
+    K = TABLE(nominal, MQXA.1R1, k1l) / TABLE(nominal, MQXA.1R1, l);
     TUNEX = TABLE(summ, q1);
     ERRTUNEX = 0;
     TUNEY = TABLE(summ, q2);
