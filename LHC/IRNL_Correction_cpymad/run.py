@@ -39,14 +39,12 @@ PATHS = {
     # "db5": Path("/afs/cern.ch/eng/lhc/optics/V6.503"),
     # "optics2016": Path("/afs/cern.ch/eng/lhc/optics/runII/2016"),
     # "optics2018": Path("/afs/cern.ch/eng/lhc/optics/runII/2018"),
-    # "external": Path("/afs/cern.ch/work/j/jdilly/public/macros"),
     # "wise": Path("/afs/cern.ch/work/j/jdilly/wise/WISE-2015-LHCsqueeze-0.4_10.0_0.4_3.0-6.5TeV-emfqcs/"),
     # modified for this example ---
     "db5": Path("./lhc_optics"),
     "optics2016": Path("./lhc_optics"),
     "optics2018": Path("./lhc_optics"),
-    "external": Path("./external"),
-    "wise": Path("./external/wise_2015"),
+    "wise": Path("./lhc_optics/wise_2015"),
 }
 
 
