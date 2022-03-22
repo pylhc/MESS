@@ -1,0 +1,212 @@
+
+! saved on 14/09/12 18:47:44 by T.Risselada
+
+ Efcomp_Measured_Sext(slot) : macro = {
+! build aperture name from slotname
+
+ yrotangle = table(rotations, slot, yrota);  // rotation around vertical axis
+ srotangle = table(rotations, slot, srota);  // rotation around beam axis
+ inout     = table(rotations, slot, inout);  // 0: single bore    1: outer     2: inner
+
+ if (inout > 0 && mylhcbeam ==   2) {inout= 3 - inout;} ;    // beam 2 clockwise, bv=-1
+ if (inout > 0 && mylhcbeam ==   3) {inout= 3 - inout;} ;    // beam 2 clockwise
+ if (inout > 0 && mylhcbeam ==   4) {inout= 3 - inout;} ;    // beam 2 counter-clockwise
+
+ if (inout > 0 && yrotangle == 180) {inout= 3 - inout;} ;    // rotated magnet
+
+ if (inout == 0) {exec, Set_Sextu_Mult(slot, slot)   ;} ;
+ if (inout == 1) {exec, Set_Sextu_Mult(slot, slot.v1);} ;
+ if (inout == 2) {exec, Set_Sextu_Mult(slot, slot.v2);} ;
+
+     };
+
+
+ Set_Sextu_Mult(slot, apert) :  macro {
+! extract multipole values from table and call EFCOMP
+
+ yfac = 1;
+ if (yrotangle == 180) {yfac = -1; };
+ if (mylhcbeam ==   4) {yfac = -1*yfac; };
+
+!value, apert, slot, yfac, inout;
+
+
+ a1s  = table(efield, apert, A1) *yfac;  b1s  = table(efield, apert, B1)      ;
+ a2s  = table(efield, apert, A2)      ;  b2s  = table(efield, apert, B2) *yfac;
+ a3s  = table(efield, apert, A3) *yfac;  b3s  = table(efield, apert, B3)      ;
+ a4s  = table(efield, apert, A4)      ;  b4s  = table(efield, apert, B4) *yfac;
+ a5s  = table(efield, apert, A5) *yfac;  b5s  = table(efield, apert, B5)      ;
+ a6s  = table(efield, apert, A6)      ;  b6s  = table(efield, apert, B6) *yfac;
+ a7s  = table(efield, apert, A7) *yfac;  b7s  = table(efield, apert, B7)      ;
+ a8s  = table(efield, apert, A8)      ;  b8s  = table(efield, apert, B8) *yfac;
+ a9s  = table(efield, apert, A9) *yfac;  b9s  = table(efield, apert, B9)      ;
+ a10s = table(efield, apert, A10)     ;  b10s = table(efield, apert, B10)*yfac;
+ a11s = table(efield, apert, A11)*yfac;  b11s = table(efield, apert, B11)     ;
+ a12s = table(efield, apert, A12)     ;  b12s = table(efield, apert, B12)*yfac;
+ a13s = table(efield, apert, A13)*yfac;  b13s = table(efield, apert, B13)     ;
+ a14s = table(efield, apert, A14)     ;  b14s = table(efield, apert, B14)*yfac;
+ a15s = table(efield, apert, A15)*yfac;  b15s = table(efield, apert, B15)     ;
+
+
+ select, flag=error, clear ;
+ select, flag=error, class=multipole, pattern=^slot;
+ select, flag=error, class=sextupole, pattern=^slot;
+
+ Efcomp,  radius = Rr, order= 2,
+      dknr:={                       1E-4*( B1s  *ON_B1S ),
+             1E-4*(-B2s  *ON_B2S ), 1E-4*( B3s  *ON_B3S ),
+             1E-4*(-B4s  *ON_B4S ), 1E-4*( B5s  *ON_B5S ),
+             1E-4*(-B6s  *ON_B6S ), 1E-4*( B7s  *ON_B7S ),
+             1E-4*(-B8s  *ON_B8S ), 1E-4*( B9s  *ON_B9S ),
+             1E-4*(-B10s *ON_B10S), 1E-4*( B11s *ON_B11S),
+             1E-4*(-B12s *ON_B12S), 1E-4*( B13s *ON_B13S),
+             1E-4*(-B14s *ON_B14S), 1E-4*( B15s *ON_B15S)},
+      dksr:={                       1E-4*(-A1s  *ON_A1S ),
+             1E-4*( A2s  *ON_A2S ), 1E-4*(-A3s  *ON_A3S ),
+             1E-4*( A4s  *ON_A4S ), 1E-4*(-A5s  *ON_A5S ),
+             1E-4*( A6s  *ON_A6S ), 1E-4*(-A7s  *ON_A7S ),
+             1E-4*( A8s  *ON_A8S ), 1E-4*(-A9s  *ON_A9S ),
+             1E-4*( A10s *ON_A10S), 1E-4*(-A11s *ON_A11S),
+             1E-4*( A12s *ON_A12S), 1E-4*(-A13s *ON_A13S),
+             1E-4*( A14s *ON_A14S), 1E-4*(-A15s *ON_A15S)};
+ };
+
+
+ Efcomp_Measured_Ssext(slot) : macro = {
+! build aperture name from slotname
+
+ yrotangle = table(rotations, slot, yrota);  // rotation around vertical axis
+ srotangle = table(rotations, slot, srota);  // rotation around beam axis
+ inout     = table(rotations, slot, inout);  // 0: single bore    1: outer     2: inner
+
+ if (inout > 0 && mylhcbeam ==   2) {inout= 3 - inout;} ;    // beam 2 clockwise, bv=-1
+ if (inout > 0 && mylhcbeam ==   3) {inout= 3 - inout;} ;    // beam 2 clockwise
+ if (inout > 0 && mylhcbeam ==   4) {inout= 3 - inout;} ;    // beam 2 counter-clockwise
+
+ if (inout > 0 && yrotangle == 180) {inout= 3 - inout;} ;    // rotated magnet
+
+ if (inout == 0) {exec, Set_Ssextu_Mult(slot, slot)   ;} ;
+ if (inout == 1) {exec, Set_Ssextu_Mult(slot, slot.v1);} ;
+ if (inout == 2) {exec, Set_Ssextu_Mult(slot, slot.v2);} ;
+
+     };
+
+
+ Set_Ssextu_Mult(slot, apert) :  macro {
+! extract multipole values from table and call EFCOMP
+
+ yfac = 1;
+ if (yrotangle == 180) {yfac = -1; };
+ if (mylhcbeam ==   4) {yfac = -1*yfac; };
+
+!value, apert, slot, yfac, inout;
+
+
+ a1s  = table(efield, apert, A1) *yfac;  b1s  = table(efield, apert, B1)      ;
+ a2s  = table(efield, apert, A2)      ;  b2s  = table(efield, apert, B2) *yfac;
+ a3s  = table(efield, apert, A3) *yfac;  b3s  = table(efield, apert, B3)      ;
+ a4s  = table(efield, apert, A4)      ;  b4s  = table(efield, apert, B4) *yfac;
+ a5s  = table(efield, apert, A5) *yfac;  b5s  = table(efield, apert, B5)      ;
+ a6s  = table(efield, apert, A6)      ;  b6s  = table(efield, apert, B6) *yfac;
+ a7s  = table(efield, apert, A7) *yfac;  b7s  = table(efield, apert, B7)      ;
+ a8s  = table(efield, apert, A8)      ;  b8s  = table(efield, apert, B8) *yfac;
+ a9s  = table(efield, apert, A9) *yfac;  b9s  = table(efield, apert, B9)      ;
+ a10s = table(efield, apert, A10)     ;  b10s = table(efield, apert, B10)*yfac;
+ a11s = table(efield, apert, A11)*yfac;  b11s = table(efield, apert, B11)     ;
+ a12s = table(efield, apert, A12)     ;  b12s = table(efield, apert, B12)*yfac;
+ a13s = table(efield, apert, A13)*yfac;  b13s = table(efield, apert, B13)     ;
+ a14s = table(efield, apert, A14)     ;  b14s = table(efield, apert, B14)*yfac;
+ a15s = table(efield, apert, A15)*yfac;  b15s = table(efield, apert, B15)     ;
+
+ select, flag=error, clear ;
+ select, flag=error, class=multipole, pattern=^slot;
+ select, flag=error, class=sextupole, pattern=^slot;
+
+ Efcomp,  radius = -Rr, order= 2,
+      dknr:={                       1E-4*(-B1s  *ON_B1S ),
+             1E-4*(+B2s  *ON_B2S ), 1E-4*(-B3s  *ON_B3S ),
+             1E-4*(+B4s  *ON_B4S ), 1E-4*(-B5s  *ON_B5S ),
+             1E-4*(+B6s  *ON_B6S ), 1E-4*(-B7s  *ON_B7S ),
+             1E-4*(+B8s  *ON_B8S ), 1E-4*(-B9s  *ON_B9S ),
+             1E-4*(+B10s *ON_B10S), 1E-4*(-B11s *ON_B11S),
+             1E-4*(+B12s *ON_B12S), 1E-4*(-B13s *ON_B13S),
+             1E-4*(+B14s *ON_B14S), 1E-4*(-B15s *ON_B15S)},
+      dksr:={                       1E-4*(+A1s  *ON_A1S ),
+             1E-4*(-A2s  *ON_A2S ), 1E-4*(+A3s  *ON_A3S ),
+             1E-4*(-A4s  *ON_A4S ), 1E-4*(+A5s  *ON_A5S ),
+             1E-4*(-A6s  *ON_A6S ), 1E-4*(+A7s  *ON_A7S ),
+             1E-4*(-A8s  *ON_A8S ), 1E-4*(+A9s  *ON_A9S ),
+             1E-4*(-A10s *ON_A10S), 1E-4*(+A11s *ON_A11S),
+             1E-4*(-A12s *ON_A12S), 1E-4*(+A13s *ON_A13S),
+             1E-4*(-A14s *ON_A14S), 1E-4*(+A15s *ON_A15S)};
+ };
+
+
+ Efcomp_Measured_Oct(slot) : macro = {
+! build aperture name from slotname
+
+ yrotangle = table(rotations, slot, yrota);  // rotation around vertical axis
+ srotangle = table(rotations, slot, srota);  // rotation around beam axis
+ inout     = table(rotations, slot, inout);  // 0: single bore    1: outer     2: inner
+
+ if (inout > 0 && mylhcbeam ==   2) {inout= 3 - inout;} ;    // beam 2 clockwise, bv=-1
+ if (inout > 0 && mylhcbeam ==   3) {inout= 3 - inout;} ;    // beam 2 clockwise
+ if (inout > 0 && mylhcbeam ==   4) {inout= 3 - inout;} ;    // beam 2 counter-clockwise
+
+ if (inout > 0 && yrotangle == 180) {inout= 3 - inout;} ;    // rotated magnet
+
+ if (inout == 0) {exec, Set_Octu_Mult(slot, slot)   ;} ;
+ if (inout == 1) {exec, Set_Octu_Mult(slot, slot.v1);} ;
+ if (inout == 2) {exec, Set_Octu_Mult(slot, slot.v2);} ;
+
+     };
+
+
+ Set_Octu_Mult(slot, apert) :  macro {
+! extract multipole values from table and call EFCOMP
+
+ yfac = 1;
+ if (yrotangle == 180) {yfac = -1; };
+ if (mylhcbeam ==   4) {yfac = -1*yfac; };
+
+!value, apert, slot, yfac, inout;
+
+
+ a1s  = table(efield, apert, A1)      ;  b1s  = table(efield, apert, B1) *yfac;
+ a2s  = table(efield, apert, A2) *yfac;  b2s  = table(efield, apert, B2)      ;
+ a3s  = table(efield, apert, A3)      ;  b3s  = table(efield, apert, B3) *yfac;
+ a4s  = table(efield, apert, A4) *yfac;  b4s  = table(efield, apert, B4)      ;
+ a5s  = table(efield, apert, A5)      ;  b5s  = table(efield, apert, B5) *yfac;
+ a6s  = table(efield, apert, A6) *yfac;  b6s  = table(efield, apert, B6)      ;
+ a7s  = table(efield, apert, A7)      ;  b7s  = table(efield, apert, B7) *yfac;
+ a8s  = table(efield, apert, A8) *yfac;  b8s  = table(efield, apert, B8)      ;
+ a9s  = table(efield, apert, A9)      ;  b9s  = table(efield, apert, B9) *yfac;
+ a10s = table(efield, apert, A10)*yfac;  b10s = table(efield, apert, B10)     ;
+ a11s = table(efield, apert, A11)     ;  b11s = table(efield, apert, B11)*yfac;
+ a12s = table(efield, apert, A12)*yfac;  b12s = table(efield, apert, B12)     ;
+ a13s = table(efield, apert, A13)     ;  b13s = table(efield, apert, B13)*yfac;
+ a14s = table(efield, apert, A14)*yfac;  b14s = table(efield, apert, B14)     ;
+ a15s = table(efield, apert, A15)     ;  b15s = table(efield, apert, B15)*yfac;
+
+ select, flag=error, clear ;
+ select, flag=error, class=multipole, pattern=^slot;
+ select, flag=error, class=octupole,  pattern=^slot;
+
+ Efcomp,  radius = Rr, order= 3,
+      dknr:={               1E-4*(-B1s *ON_B1S ),
+      1E-4*( B2s *ON_B2S ), 1E-4*(-B3s *ON_B3S ),
+      1E-4*( B4s *ON_B4S ), 1E-4*(-B5s *ON_B5S ),
+      1E-4*( B6s *ON_B6S ), 1E-4*(-B7s *ON_B7S ),
+      1E-4*( B8s *ON_B8S ), 1E-4*(-B9s *ON_B9S ),
+      1E-4*( B10s*ON_B10S), 1E-4*(-B11s*ON_B11S),
+      1E-4*( B12s*ON_B12S), 1E-4*(-B13s*ON_B13S),
+      1E-4*( B14s*ON_B14S), 1E-4*(-B15s*ON_B15S)},
+      dksr:={               1E-4*( A1s *ON_A1S ),
+      1E-4*(-A2s *ON_A2S ), 1E-4*( A3s *ON_A3S ),
+      1E-4*(-A4s *ON_A4S ), 1E-4*( A5s *ON_A5S ),
+      1E-4*(-A6s *ON_A6S ), 1E-4*( A7s *ON_A7S ),
+      1E-4*(-A8s *ON_A8S ), 1E-4*( A9s *ON_A9S ),
+      1E-4*(-A10s*ON_A10S), 1E-4*( A11s*ON_A11S),
+      1E-4*(-A12s*ON_A12S), 1E-4*( A13s*ON_A13S),
+      1E-4*(-A14s*ON_A14S), 1E-4*( A15s*ON_A15S)};
+ };

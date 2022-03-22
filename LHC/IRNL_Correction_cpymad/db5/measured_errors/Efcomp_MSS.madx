@@ -1,0 +1,40 @@
+! apply measured errors to all MSS
+
+! saved on 14/09/12 12:23:43 by T.Risselada
+
+ Rr = 0.017; ON_MSS = 1;
+
+ exec, Efcomp_Measured_Ssext(MSS.29R1);
+ exec, Efcomp_Measured_Ssext(MSS.33R1);
+ exec, Efcomp_Measured_Ssext(MSS.33L2);
+ exec, Efcomp_Measured_Ssext(MSS.29L2);
+ exec, Efcomp_Measured_Ssext(MSS.30R2);
+ exec, Efcomp_Measured_Ssext(MSS.34L3);
+ exec, Efcomp_Measured_Ssext(MSS.32L3);
+ exec, Efcomp_Measured_Ssext(MSS.28L3);
+ exec, Efcomp_Measured_Ssext(MSS.29R3);
+ exec, Efcomp_Measured_Ssext(MSS.33R3);
+ exec, Efcomp_Measured_Ssext(MSS.33L4);
+ exec, Efcomp_Measured_Ssext(MSS.29L4);
+ exec, Efcomp_Measured_Ssext(MSS.30R4);
+ exec, Efcomp_Measured_Ssext(MSS.34L5);
+ exec, Efcomp_Measured_Ssext(MSS.32L5);
+ exec, Efcomp_Measured_Ssext(MSS.28L5);
+ exec, Efcomp_Measured_Ssext(MSS.29R5);
+ exec, Efcomp_Measured_Ssext(MSS.33R5);
+ exec, Efcomp_Measured_Ssext(MSS.33L6);
+ exec, Efcomp_Measured_Ssext(MSS.29L6);
+ exec, Efcomp_Measured_Ssext(MSS.30R6);
+ exec, Efcomp_Measured_Ssext(MSS.34L7);
+ exec, Efcomp_Measured_Ssext(MSS.32L7);
+ exec, Efcomp_Measured_Ssext(MSS.28L7);
+ exec, Efcomp_Measured_Ssext(MSS.29R7);
+ exec, Efcomp_Measured_Ssext(MSS.33R7);
+ exec, Efcomp_Measured_Ssext(MSS.33L8);
+ exec, Efcomp_Measured_Ssext(MSS.29L8);
+ exec, Efcomp_Measured_Ssext(MSS.30R8);
+ exec, Efcomp_Measured_Ssext(MSS.34L1);
+ exec, Efcomp_Measured_Ssext(MSS.32L1);
+ exec, Efcomp_Measured_Ssext(MSS.28L1);
+
+return;
