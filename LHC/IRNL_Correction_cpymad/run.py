@@ -26,7 +26,7 @@ from pandas import DataFrame
 from tfs import TfsDataFrame
 
 from cpymad_lhc.coupling_correction import correct_coupling
-from cpymad_lhc.general import (get_tfs, switch_magentic_errors, match_tune, get_k_strings, amplitude_detuning_ptc,
+from cpymad_lhc.general import (get_tfs, switch_magnetic_errors, match_tune, get_k_strings, amplitude_detuning_ptc,
                                 sixtrack_output, get_lhc_sequence_filename_and_bv)
 from cpymad_lhc.ir_orbit import orbit_setup, log_orbit
 from cpymad_lhc.logging import cpymad_logging_setup, MADXOUT, MADXCMD
@@ -423,7 +423,7 @@ class LHCBeam:
         madx.call(file=pathstr('optics2016', 'errors', 'macro_error.madx'))  # 2nd time
 
         # Apply magnetic errors -------------------------------
-        switch_magentic_errors(madx, **self.errors)
+        switch_magnetic_errors(madx, **self.errors)
 
         # Read WISE
         madx.readtable(file=get_wise_path(self.seed))
