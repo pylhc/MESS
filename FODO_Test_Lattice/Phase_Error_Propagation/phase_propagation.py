@@ -14,6 +14,10 @@ RNG = np.random.default_rng(27837)
 FloatOrArray = Union[float, np.ndarray, pd.Series]
 
 
+# Arbitrarily choosen boundary conditions, enhancing the spread between 
+# the two propagation formulas:
+
+
 # Classes ----------------------------------------------------------------------
 
 @dataclass 
@@ -55,18 +59,23 @@ class MadXBoundaryConditions:
 
 def create_realizations(output: Path, n: int = 100) -> pd.DataFrame:
     """Main function to generate the phase advance realizations.
-    The mean and std values are hardcoded and choosen to have a final phase advance 
-    of around 0.25 (far away from 0.5) in units of 2 Pi.
+    The mean and std values of the boundary conditions  are hardcoded and 
+    choosen to yield a final phase advance of around 0.25 (far away from 0.5) 
+    in units of 2 Pi.
 
     Args:
         output (Path): Path to save the output tfs-file.
         n (int, optional): Number of realizations to generate. Defaults to 100.
+
+    Returns:
+        pd.DataFrame: Phase advance realizations, propagated analytically and with MAD-X.
     """
     madx = generate_fodo()
     madx.twiss(chrom=True)
-
+    
     x = PropagableBoundaryConditions(alpha=ufloat(-1.6, 0.002), beta=ufloat(3.467, 0.025))
     y = PropagableBoundaryConditions(alpha=ufloat(2.16, 0.002), beta=ufloat(7.14, 0.016))
+    
     no_error = MadXBoundaryConditions(
         alfx=x.alpha.nominal_value, 
         betx=x.beta.nominal_value, 
@@ -105,18 +114,26 @@ def create_realizations(output: Path, n: int = 100) -> pd.DataFrame:
         df[f"MADXY{idx:03d}"] = diff_y
 
     tfs.write(output, df, save_index="NAME")
+
+    madx.exit()
     return df
 
 
 # Helper ---
 
-def generate_fodo(sequence: str ="fodo") -> Madx:
+def generate_fodo(madx: Madx = None, sequence: str ="fodo") -> Madx:
     """Generate a standard FODO sequence.
     
     Args:
-        sequence (str): Sequence name.
+        madx (Madx): Mad-X cpymad object (Optional).
+        sequence (str): Sequence name. Defaults to "fodo".
+    
+    Returns:
+        Madx: Mad-X cpymad object with new FODO cell sequence.
     """
-    madx = Madx()
+    if madx is None:
+        madx = Madx()
+
     madx.beam()
     madx.globals["mqf.k1"] = 0.3037241107
     madx.globals["mqd.k1"] = -madx.globals["mqf.k1"]
@@ -139,6 +156,9 @@ def generate_df(madx: Madx, sequence: str, boundary_conditions: MadXBoundaryCond
         madx (Madx): Mad-X cpymad object.
         sequence (str): Sequence name.
         boundary_conditions (MadXBoundaryConditions): Boundary conditions.
+    
+    Returns:
+        pd.DataFrame: Output from Mad-X twiss using the given boundary conditions.
     """
     if boundary_conditions is None:
         boundary_conditions = MadXBoundaryConditions()
@@ -151,7 +171,7 @@ def generate_df(madx: Madx, sequence: str, boundary_conditions: MadXBoundaryCond
 
 # Propagate Errors -------------------------------------------------------------
 
-def propagate_with_minus(dphi: FloatOrArray, init: PropagableBoundaryConditions):
+def propagate_with_minus(dphi: FloatOrArray, init: PropagableBoundaryConditions) -> FloatOrArray:
     """Phase error propagation as given in Eq. (2) of the paper,
     but the first plus sign replaced with a minus sign.
 
@@ -255,27 +275,27 @@ def plot_realizations(saved_realizations: Union[Path, pd.DataFrame], element: st
             madx_res.std(),
             color=color_madx,
             linestyle='--',
-            label="_MADX_MEAN",
+            label="std",
         )
         ax.axvline(
             df.loc[element, f"PLUS{plane}"],
             color=color_prop_plus,
             linestyle='-',
-            label="Plus",
+            label="plus",
         )
         ax.axvline(
             df.loc[element, f"MINUS{plane}"],
             color=color_prop_minus,
             linestyle='-',
-            label="Minus",
+            label="minus",
         )
         ax.legend(
-            bbox_to_anchor=(1, 1.01), 
+            bbox_to_anchor=(1.05, 1.01), 
             loc='lower right', 
             fancybox=False, 
             shadow=False, 
             frameon=False, 
-            ncol=3
+            ncol=4
         )
         ax.set_xlabel(fr"$\Delta\phi_{plane}$")
         ax.set_ylabel("Density")
