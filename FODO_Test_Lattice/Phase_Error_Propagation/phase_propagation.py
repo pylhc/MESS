@@ -168,9 +168,6 @@ def generate_df(madx: Madx, sequence: str, boundary_conditions: MadXBoundaryCond
     return madx.table.twiss.dframe().copy()
 
 
-
-# Propagate Errors -------------------------------------------------------------
-
 def propagate_analytically(dphi: FloatOrArray, init: PropagableBoundaryConditions, sign: int = 1) -> FloatOrArray:
     """Phase error propagation as given in Eq. (2) of the paper.
     The first plus sign can be replaced with a minus sign, giving sign=-1.
@@ -197,8 +194,6 @@ def propagate_analytically(dphi: FloatOrArray, init: PropagableBoundaryCondition
     return res
 
 
-# Random Generators ------------------------------------------------------------
-
 def get_realization(value: ufloat) -> float:
     """Generate a single realization from a gaussian distribution, given 
     the mean and standard deviation.
@@ -214,7 +209,6 @@ def get_realization(value: ufloat) -> float:
 
 
 # Plotting --------------------------------------------------------------------- 
-
 
 def plot_realizations(saved_realizations: Union[Path, pd.DataFrame], element: str, bins=20):
     """Plot the generated realizations to compare with the analytical propagation.
