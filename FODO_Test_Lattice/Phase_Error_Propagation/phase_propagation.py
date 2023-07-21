@@ -87,13 +87,13 @@ def create_realizations(output: Path, n: int = 100) -> pd.DataFrame:
     
     df = pd.DataFrame()
     df["MUX"] = df_ref.mux
-    df["PLUSX"] = propagate_with_plus(dphi=df_ref.mux, init=x)
-    df["MINUSX"] = propagate_with_minus(dphi=df_ref.mux, init=x)
+    df["PLUSX"] = propagate_analytically(dphi=df_ref.mux, init=x, sign=1)
+    df["MINUSX"] = propagate_analytically(dphi=df_ref.mux, init=x, sign=-1)
     
     df["MUY"] = df_ref.muy
-    df["PLUSY"] = propagate_with_plus(dphi=df_ref.muy, init=y)
-    df["MINUSY"] = propagate_with_minus(dphi=df_ref.muy, init=y)
-    print(df_ref[["mux", "muy"]])
+    df["PLUSY"] = propagate_analytically(dphi=df_ref.muy, init=y, sign=1)
+    df["MINUSY"] = propagate_analytically(dphi=df_ref.muy, init=y, sign=-1)
+    # print(df_ref[["mux", "muy"]])  # debug for checking phase advances
 
     for idx in range(n):
         with_error = MadXBoundaryConditions(
@@ -171,13 +171,14 @@ def generate_df(madx: Madx, sequence: str, boundary_conditions: MadXBoundaryCond
 
 # Propagate Errors -------------------------------------------------------------
 
-def propagate_with_minus(dphi: FloatOrArray, init: PropagableBoundaryConditions) -> FloatOrArray:
-    """Phase error propagation as given in Eq. (2) of the paper,
-    but the first plus sign replaced with a minus sign.
+def propagate_analytically(dphi: FloatOrArray, init: PropagableBoundaryConditions, sign: int = 1) -> FloatOrArray:
+    """Phase error propagation as given in Eq. (2) of the paper.
+    The first plus sign can be replaced with a minus sign, giving sign=-1.
 
     Args:
         dphi (FloatOrArray): Phase advance(s). 
         init (PropagableBoundaryConditions): Initial conditions.
+        sign (int, optional): Sign of the second term in the first bracket. Defaults to 1.
 
     Returns:
         FloatOrArray: Phase error at the given phase advance(s).
@@ -187,41 +188,16 @@ def propagate_with_minus(dphi: FloatOrArray, init: PropagableBoundaryConditions)
 
     res = np.sqrt(
         (
-                (((np.cos(4 * np.pi * dphi) - 1) * alpha) - 
-                 (np.sin(4 * np.pi * dphi))
-                 ) * 0.5 * errbeta/beta
+            (((np.cos(4 * np.pi * dphi) - 1) * alpha) +
+             (np.sin(4 * np.pi * dphi) * np.sign(sign))
+             ) * 0.5 * errbeta/beta
         ) ** 2 +
         ((np.cos(4*np.pi*dphi) - 1) * 0.5 * erralpha) ** 2
     ) / (2*np.pi)
     return res
 
-def propagate_with_plus(dphi: FloatOrArray, init: PropagableBoundaryConditions) -> FloatOrArray:
-    """Phase error propagation as given in Eq. (2) of the paper.
-
-    Args:
-        dphi (FloatOrArray): Phase advance(s). 
-        init (PropagableBoundaryConditions): Initial conditions.
-
-    Returns:
-        FloatOrArray: Phase error at the given phase advance(s).
-    """
-    alpha, erralpha = init.as_tuple(init.alpha)
-    beta, errbeta = init.as_tuple(init.beta)
-
-    res = np.sqrt(
-        (
-                (((np.cos(4 * np.pi * dphi) - 1) * alpha) + 
-                 (np.sin(4 * np.pi * dphi))
-                 ) * 0.5 * errbeta/beta
-        ) ** 2 +
-        ((np.cos(4 * np.pi*dphi) - 1) * 0.5 * erralpha) ** 2
-    ) / (2*np.pi)
-    return res
-
-
 
 # Random Generators ------------------------------------------------------------
-
 
 def get_realization(value: ufloat) -> float:
     """Generate a single realization from a gaussian distribution, given 
