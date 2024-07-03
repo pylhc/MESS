@@ -1,5 +1,5 @@
 tfs-pandas==3.7.0
 cpymad==1.14.0
 matplotlib==3.7.1
-numpy==1.21.0
+numpy=>1.22.0
 uncertainties==3.1.7
