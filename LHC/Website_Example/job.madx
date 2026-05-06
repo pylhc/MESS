@@ -1,4 +1,4 @@
-option, warn, info;
+option, info;
 option, echo=false, warn=false;
 
 ! ----- Set up Lattice and Define the Optics ----- !
