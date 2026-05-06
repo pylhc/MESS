@@ -1,0 +1,31 @@
+!Slicing strategy for the ATS_V6.503: S. Fartoukh March 2011
+!Slicing strategy for the ATS_V6.506 with more slice S. Fartoukh March 2018
+
+if (slicefactor == 0) {slicefactor=1;};
+
+ select, flag=makethin, clear;
+ 
+ select, flag=makethin, class=MB, slice=2;
+ select, flag=makethin, class=MQ, slice=2 * slicefactor;
+  
+ select, flag=makethin, class=mqxa,  slice=16 * slicefactor;
+ select, flag=makethin, class=mqxb,  slice=16 * slicefactor;
+  
+ select, flag=makethin, pattern=mbx\. ,   slice=4;
+!select, flag=makethin, pattern=mbxw\.,   slice=4;
+ select, flag=makethin, pattern=mbrb\.,   slice=4;
+ select, flag=makethin, pattern=mbrc\.,   slice=4;
+ select, flag=makethin, pattern=mbrs\.,   slice=4;
+
+ select, flag=makethin, pattern=mqwa\.,   slice=4 * slicefactor;
+ select, flag=makethin, pattern=mqwb\.,   slice=4 * slicefactor;
+ select, flag=makethin, pattern=mqy\.,    slice=4 * slicefactor;
+ select, flag=makethin, pattern=mqm\.,    slice=4 * slicefactor;
+ select, flag=makethin, pattern=mqmc\.,   slice=4 * slicefactor;
+ select, flag=makethin, pattern=mqml\.,   slice=4 * slicefactor;
+ select, flag=makethin, pattern=mqtlh\.,  slice=2 * slicefactor;
+ select, flag=makethin, pattern=mqtli\.,  slice=2 * slicefactor;
+ select, flag=makethin, pattern=mqt\.  ,  slice=2 * slicefactor; 
+ 
+
+return;
